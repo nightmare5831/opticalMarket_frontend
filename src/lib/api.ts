@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { getCurrentUserId } from '@/lib/user-context'
 
 const Axios = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_SITE_URL || '',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
 })
 
 const getHeaders = () => {
