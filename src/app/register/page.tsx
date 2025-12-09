@@ -132,7 +132,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   <span className={`text-xs font-medium ${role === 'CUSTOMER' ? 'text-blue-600' : 'text-gray-700'}`}>
-                    Buyer
+                    Customer
                   </span>
                 </button>
 
