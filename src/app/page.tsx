@@ -1,33 +1,53 @@
-import Link from 'next/link';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 export default function Home() {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
+  if (!user) {
+    return null;
+  }
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
-      <div className="text-center max-w-2xl px-4">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Optical Market
-        </h1>
-        <p className="text-xl text-gray-600 mb-8">
-          Your optical marketplace platform
-        </p>
-
-        <div className="flex gap-4 justify-center">
-          <Link
-            href="/login"
-            className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium text-lg"
+    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-2xl w-full mx-4 p-8 border-2 border-gray-300 rounded-xl bg-white shadow-lg">
+        <div className="text-center">
+          <div className="relative w-32 h-32 mx-auto mb-4 rounded-full border-4 border-gray-300 overflow-hidden">
+            <Image
+              src="/assets/user.png"
+              alt="User Avatar"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Welcome to Optical Market
+          </h1>
+          <p className="text-xl text-gray-600 mb-6">
+            Hello, {user.name}!
+          </p>
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
+            <p className="text-gray-700">
+              You are logged in as <span className="font-semibold">{user.role}</span>
+            </p>
+          </div>
+          <button
+            onClick={logout}
+            className="px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium transition-colors"
           >
-            Sign In
-          </Link>
-          <Link
-            href="/register"
-            className="px-8 py-3 bg-white text-blue-600 border-2 border-blue-600 rounded-md hover:bg-blue-50 font-medium text-lg"
-          >
-            Sign Up
-          </Link>
-        </div>
-
-        <div className="mt-12 text-sm text-gray-500">
-          <p>Milestone 1: Foundation & Infrastructure ✓</p>
+            Logout
+          </button>
         </div>
       </div>
     </main>
