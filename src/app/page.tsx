@@ -8,19 +8,21 @@ import Request from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [blingStatus, setBlingStatus] = useState<any>(null);
   const [blingLoading, setBlingLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncResult, setSyncResult] = useState<any>(null);
 
   useEffect(() => {
+    if (loading) return; // Wait for auth to load
+
     if (!user) {
       router.push('/login');
     } else if (user.role === 'ADMIN') {
       router.push('/admin');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
   const checkBlingStatus = async () => {
     setBlingLoading(true);
@@ -47,7 +49,7 @@ export default function Home() {
     }
   };
 
-  if (!user) {
+  if (loading || !user) {
     return null;
   }
 
@@ -141,7 +143,7 @@ export default function Home() {
                     </div>
 
                     {/* Product Table */}
-                    {syncResult.data.products && syncResult.data.products.length > 0 && (
+                    {syncResult.data.data && syncResult.data.data.length > 0 && (
                       <div className="overflow-x-auto">
                         <table className="w-full border-collapse border border-gray-300">
                           <thead>
@@ -153,7 +155,7 @@ export default function Home() {
                             </tr>
                           </thead>
                           <tbody>
-                            {syncResult.data.products.map((product: any, index: number) => (
+                            {syncResult.data.data.map((product: any, index: number) => (
                               <tr key={index} className="hover:bg-gray-50">
                                 <td className="border border-gray-300 px-4 py-2">{product.sku}</td>
                                 <td className="border border-gray-300 px-4 py-2">{product.name}</td>
