@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/auth';
 import Request from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth } = useAuth();
+  const setAuthStore = useAuthStore((state) => state.setAuth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +24,9 @@ export default function LoginPage() {
 
     try {
       const data = await Request.Post('/auth/login', { email, password });
+      // Set auth in both stores
       setAuth(data.user, data.token);
+      setAuthStore(data.user, data.token);
 
       // Redirect based on role
       if (data.user.role === 'ADMIN') {
