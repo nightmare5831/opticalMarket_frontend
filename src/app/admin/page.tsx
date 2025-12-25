@@ -4,19 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
+import Header from '@/components/Header';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { toastConfig } from '@/lib/toast';
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const [blingStatus, setBlingStatus] = useState<any>(null);
   const [checkLoading, setCheckLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [products, setProducts] = useState<any[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [invitationUrl, setInvitationUrl] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
-  const [connectLoading, setConnectLoading] = useState(false);
 
   useEffect(() => {
     if (loading) return; // Wait for auth to load
@@ -36,10 +36,14 @@ export default function AdminPage() {
     try {
       const status = await Request.Get('/bling/status');
       setBlingStatus(status);
-      setMessage('✅ Connection status checked successfully');
+      if (status.connected) {
+        toast.success('Connected to Bling ERP successfully!', toastConfig);
+      } else {
+        toast.info('Not connected to Bling ERP', toastConfig);
+      }
     } catch (error: any) {
       console.error('Failed to check Bling status:', error);
-      setMessage(`❌ Failed to check connection: ${error?.response?.data?.message || error.message || 'Unknown error'}`);
+      toast.error(`Failed to check connection: ${error?.response?.data?.message || error.message || 'Unknown error'}`, toastConfig);
       setBlingStatus(null);
     } finally {
       setCheckLoading(false);
@@ -66,46 +70,11 @@ export default function AdminPage() {
       console.log('Sync result:', data);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.response?.data?.error || error.message || 'Unknown error';
-      setMessage(`❌ Failed to sync products: ${errorMessage}`);
+      toast.error(`Failed to sync products: ${errorMessage}`, toastConfig);
       console.error('Sync error:', error);
       console.error('Error response:', error?.response?.data);
     } finally {
       setSyncLoading(false);
-    }
-  };
-
-  const handleConnectBling = async () => {
-    if (!invitationUrl.trim() || !clientSecret.trim()) {
-      setMessage('❌ Please fill in all fields');
-      return;
-    }
-
-    setConnectLoading(true);
-    setMessage('');
-    try {
-      // Extract client_id and state from invitation URL
-      const url = new URL(invitationUrl);
-      const clientId = url.searchParams.get('client_id');
-      const state = url.searchParams.get('state');
-
-      if (!clientId || !state) {
-        setMessage('❌ Invalid invitation URL: missing client_id or state parameter');
-        setConnectLoading(false);
-        return;
-      }
-
-      // Save credentials to backend
-      await Request.Post('/bling/credentials', { clientId, clientSecret, state });
-
-      setShowModal(false);
-      setInvitationUrl('');
-      setClientSecret('');
-
-      // Redirect to Bling OAuth using the invitation URL
-      window.location.href = invitationUrl;
-    } catch (error: any) {
-      setMessage('❌ Failed to connect: ' + (error?.response?.data?.message || error.message || 'Unknown error'));
-      setConnectLoading(false);
     }
   };
 
@@ -117,99 +86,40 @@ export default function AdminPage() {
     return null;
   }
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-          <div className="flex items-center gap-4">
-            {!blingStatus?.connected && (
-              <button
-                onClick={() => setShowModal(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md"
-              >
-                Connect Bling Account
-              </button>
-            )}
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <a
-              href="#"
-              className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600"
-            >
-              Dashboard
-            </a>
-            <a
-              href="#"
-              className="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Users
-            </a>
-            <a
-              href="#"
-              className="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Products
-            </a>
-            <a
-              href="#"
-              className="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Orders
-            </a>
-            <a
-              href="#"
-              className="border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Categories
-            </a>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <ToastContainer />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-8 px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+          <p className="text-gray-600">Manage your platform and ERP integration</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Stats Cards */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-500">Total Users</h3>
             <p className="mt-2 text-3xl font-bold text-gray-900">0</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-500">Total Products</h3>
             <p className="mt-2 text-3xl font-bold text-gray-900">0</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-500">Total Orders</h3>
             <p className="mt-2 text-3xl font-bold text-gray-900">0</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-500">Revenue</h3>
             <p className="mt-2 text-3xl font-bold text-gray-900">R$ 0</p>
           </div>
         </div>
 
         {/* Bling ERP Integration */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Bling ERP Integration</h2>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Bling ERP Integration</h2>
           <div className="flex gap-3 mb-4">
             <button
               onClick={checkBlingStatus}
@@ -306,90 +216,25 @@ export default function AdminPage() {
         )}
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="px-4 py-3 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 text-left">
+            <button className="px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 text-left border border-blue-100">
               <div className="font-medium">Approve Sellers</div>
               <div className="text-sm text-blue-600">Manage seller approvals</div>
             </button>
-            <button className="px-4 py-3 bg-green-50 text-green-700 rounded-md hover:bg-green-100 text-left">
+            <button className="px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 text-left border border-green-100">
               <div className="font-medium">Manage Products</div>
               <div className="text-sm text-green-600">View and moderate products</div>
             </button>
-            <button className="px-4 py-3 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 text-left">
+            <button className="px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 text-left border border-purple-100">
               <div className="font-medium">View Orders</div>
               <div className="text-sm text-purple-600">Monitor all orders</div>
             </button>
           </div>
         </div>
-
-        {/* Info Message */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            <strong>Milestone 1:</strong> Admin panel structure created. Full functionality will be implemented in subsequent milestones.
-          </p>
-        </div>
       </main>
 
-      {/* Modal for Bling Credentials */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-xl font-bold mb-4">Connect Bling Account</h3>
-            <p className="text-gray-600 mb-4">Enter your Bling invitation URL and Client Secret:</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Invitation URL
-                </label>
-                <input
-                  type="text"
-                  value={invitationUrl}
-                  onChange={(e) => setInvitationUrl(e.target.value)}
-                  placeholder="https://www.bling.com.br/Api/v3/oauth/authorize?..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Client Secret
-                </label>
-                <input
-                  type="password"
-                  value={clientSecret}
-                  onChange={(e) => setClientSecret(e.target.value)}
-                  placeholder="Enter your Bling Client Secret"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end mt-6">
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setInvitationUrl('');
-                  setClientSecret('');
-                }}
-                disabled={connectLoading}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConnectBling}
-                disabled={connectLoading}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
-              >
-                {connectLoading ? 'Connecting...' : 'Connect & Authorize'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

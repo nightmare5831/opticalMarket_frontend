@@ -6,6 +6,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { toastConfig } from '@/lib/toast';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,9 +35,13 @@ export default function RegisterPage() {
     try {
       const data = await Request.Post('/auth/register', { name, email, password, role });
       setAuth(data.user, data.token);
-      router.push('/');
+      toast.success('Registration successful! Welcome to Optical Market.', toastConfig);
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      toast.error(err.response?.data?.message || 'Registration failed. Please try again.', toastConfig);
     } finally {
       setLoading(false);
     }
@@ -42,6 +49,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <ToastContainer />
       <div className="max-w-md w-full space-y-8 border-2 border-gray-300 rounded-xl p-8 bg-white shadow-lg">
         <div className="flex flex-col items-center">
           <div className="relative w-32 h-32 mb-4 rounded-full border-4 border-gray-300 overflow-hidden p-4 bg-white">
