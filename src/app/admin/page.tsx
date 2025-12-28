@@ -60,11 +60,11 @@ export default function AdminPage() {
       setProducts(data.data || []);
 
       if (data.data && data.data.length === 0) {
-        setMessage('⚠️ No products found in your Bling ERP account. Please add products in Bling first.');
+        toast.warning('No products found in your Bling ERP account. Please add products in Bling first.', toastConfig);
       } else if (data.data && data.data.length > 0) {
         setMessage(`✅ Successfully synced ${data.data.length} products from Bling!`);
       } else {
-        setMessage(`✅ ${data.message || 'Sync completed successfully'}`);
+        toast.success(data.message || 'Sync completed successfully', toastConfig);
       }
 
       console.log('Sync result:', data);
