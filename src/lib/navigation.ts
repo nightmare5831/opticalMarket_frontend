@@ -16,8 +16,8 @@ export const SELLER_TABS: NavTab[] = [
   { label: 'Categories', path: '/products/categories' },
 ];
 
-// User/Buyer navigation tabs
-export const USER_TABS: NavTab[] = [
+// Customer/Buyer navigation tabs
+export const CUSTOMER_TABS: NavTab[] = [
   { label: 'Products', path: '/products' },
 ];
 
@@ -28,9 +28,9 @@ export const getNavigationTabs = (role: string | undefined): NavTab[] => {
       return ADMIN_TABS;
     case 'SELLER':
       return SELLER_TABS;
-    case 'USER':
+    case 'CUSTOMER':
     default:
-      return USER_TABS;
+      return CUSTOMER_TABS;
   }
 };
 
@@ -41,7 +41,7 @@ export const getHomePath = (role: string | undefined): string => {
       return '/admin';
     case 'SELLER':
       return '/';
-    case 'USER':
+    case 'CUSTOMER':
     default:
       return '/';
   }

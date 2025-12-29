@@ -11,7 +11,7 @@ import BlingConnectionModal from '@/components/BlingConnectionModal';
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, loggingOut } = useAuthStore();
   const { getItemCount } = useCartStore();
   const [showBlingModal, setShowBlingModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -35,7 +35,7 @@ export default function Header() {
     router.push(path);
   };
 
-  if (!user) return null;
+  if (!user && !loggingOut) return null;
 
   return (
     <header className="bg-white border-b sticky top-0 z-40">
@@ -100,7 +100,7 @@ export default function Header() {
               )}
             </Link>
 
-            <p className="hidden sm:block text-sm font-medium text-gray-900">{user.name}</p>
+            {user && <p className="hidden sm:block text-sm font-medium text-gray-900">{user.name}</p>}
 
             {/* Connect Bling Button */}
             {(user?.role === 'ADMIN' || user?.role === 'SELLER') && (
@@ -137,9 +137,12 @@ export default function Header() {
       />
 
       {/* Loading Spinner Overlay */}
-      {isNavigating && (
+      {(isNavigating || loggingOut) && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            {loggingOut && <p className="mt-3 text-gray-700 font-medium">Logging out...</p>}
+          </div>
         </div>
       )}
     </header>

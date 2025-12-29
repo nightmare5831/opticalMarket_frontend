@@ -85,7 +85,7 @@ export const useCartStore = create<CartState>()(
 
       getTotal: () => {
         return get().items.reduce(
-          (total, item) => total + item.price * item.quantity,
+          (total, item) => total + parseFloat(item.price.toString()) * item.quantity,
           0
         );
       },

@@ -11,25 +11,12 @@ import { toast, ToastContainer } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 import 'react-toastify/dist/ReactToastify.css';
 
-type PaymentMethod = 'PIX' | 'CREDIT_CARD';
-
-interface PaymentResult {
-  paymentId: string;
-  status: string;
-  pixQrCode?: string;
-  pixQrCodeBase64?: string;
-  ticketUrl?: string;
-}
-
 export default function CheckoutPaymentPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const { items, getTotal, clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PIX');
   const [processing, setProcessing] = useState(false);
-  const [pixData, setPixData] = useState<PaymentResult | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -59,74 +46,31 @@ export default function CheckoutPaymentPage() {
     setProcessing(true);
 
     try {
-      const orderData = {
+      const order = await Request.Post('/orders', {
         addressId,
-        paymentMethod,
+        paymentMethod: 'PIX',
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
         })),
-      };
+      });
 
-      const order = await Request.Post('/orders', orderData);
-      setOrderId(order.id);
-
-      const paymentData = {
+      const checkout = await Request.Post('/payment/create', {
         orderId: order.id,
-        paymentMethod,
         payerEmail: user?.email,
-      };
+      });
 
-      const payment = await Request.Post('/payment/create', paymentData);
+      clearCart();
+      sessionStorage.removeItem('checkout_address_id');
 
-      if (paymentMethod === 'PIX') {
-        setPixData(payment);
-        if (payment.status === 'approved') {
-          clearCart();
-          sessionStorage.removeItem('checkout_address_id');
-          router.push(`/checkout/confirmation?orderId=${order.id}`);
-        }
-      } else {
-        if (payment.status === 'approved') {
-          clearCart();
-          sessionStorage.removeItem('checkout_address_id');
-          router.push(`/checkout/confirmation?orderId=${order.id}`);
-        } else {
-          toast.error('Payment was not approved. Please try again.', toastConfig);
-        }
-      }
+      window.location.href = checkout.sandboxInitPoint || checkout.initPoint;
     } catch (error: any) {
       console.error('Payment error:', error);
       toast.error(
         error.response?.data?.message || 'Error processing payment',
         toastConfig
       );
-    } finally {
       setProcessing(false);
-    }
-  };
-
-  const checkPixPayment = async () => {
-    if (!orderId) return;
-
-    try {
-      const status = await Request.Get(`/payment/${orderId}/status`);
-      if (status.paymentStatus === 'APPROVED') {
-        clearCart();
-        sessionStorage.removeItem('checkout_address_id');
-        router.push(`/checkout/confirmation?orderId=${orderId}`);
-      } else {
-        toast.info('Payment not yet confirmed. Please wait...', toastConfig);
-      }
-    } catch (error) {
-      console.error('Error checking payment:', error);
-    }
-  };
-
-  const copyPixCode = () => {
-    if (pixData?.pixQrCode) {
-      navigator.clipboard.writeText(pixData.pixQrCode);
-      toast.success('PIX code copied!', toastConfig);
     }
   };
 
@@ -134,7 +78,7 @@ export default function CheckoutPaymentPage() {
     return null;
   }
 
-  if (items.length === 0 && !pixData) {
+  if (items.length === 0) {
     router.push('/cart');
     return null;
   }
@@ -179,133 +123,42 @@ export default function CheckoutPaymentPage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Payment Method
+                Payment
               </h2>
 
-              {!pixData ? (
-                <>
-                  <div className="space-y-3 mb-6">
-                    <label
-                      className={`block p-4 border rounded-lg cursor-pointer transition-colors ${
-                        paymentMethod === 'PIX'
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="payment"
-                          value="PIX"
-                          checked={paymentMethod === 'PIX'}
-                          onChange={() => setPaymentMethod('PIX')}
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">PIX</p>
-                          <p className="text-sm text-gray-500">
-                            Instant payment via PIX
-                          </p>
-                        </div>
-                        <div className="text-2xl">📱</div>
-                      </div>
-                    </label>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  You will be redirected to Mercado Pago to complete your payment securely.
+                </p>
+              </div>
 
-                    <label
-                      className={`block p-4 border rounded-lg cursor-pointer transition-colors ${
-                        paymentMethod === 'CREDIT_CARD'
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="payment"
-                          value="CREDIT_CARD"
-                          checked={paymentMethod === 'CREDIT_CARD'}
-                          onChange={() => setPaymentMethod('CREDIT_CARD')}
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">Credit Card</p>
-                          <p className="text-sm text-gray-500">
-                            Pay with credit card (up to 12x)
-                          </p>
-                        </div>
-                        <div className="text-2xl">💳</div>
-                      </div>
-                    </label>
-                  </div>
-
-                  {paymentMethod === 'CREDIT_CARD' && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-yellow-800">
-                        Credit card payment will be implemented with Mercado Pago
-                        card form. For now, please use PIX for testing.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex gap-3">
-                    <Link
-                      href="/checkout"
-                      className="flex-1 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-center"
-                    >
-                      Back
-                    </Link>
-                    <button
-                      onClick={handlePayment}
-                      disabled={processing || paymentMethod === 'CREDIT_CARD'}
-                      className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
-                    >
-                      {processing ? 'Processing...' : 'Pay Now'}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    Scan the QR Code or copy the PIX code
-                  </h3>
-
-                  {pixData.pixQrCodeBase64 && (
-                    <div className="mb-4">
-                      <img
-                        src={`data:image/png;base64,${pixData.pixQrCodeBase64}`}
-                        alt="PIX QR Code"
-                        className="mx-auto w-48 h-48"
-                      />
-                    </div>
-                  )}
-
-                  {pixData.pixQrCode && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-2">
-                        Or copy the PIX code:
-                      </p>
-                      <div className="bg-gray-100 p-3 rounded-lg break-all text-xs">
-                        {pixData.pixQrCode.substring(0, 50)}...
-                      </div>
-                      <button
-                        onClick={copyPixCode}
-                        className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        Copy full code
-                      </button>
-                    </div>
-                  )}
-
-                  <p className="text-sm text-gray-500 mb-4">
-                    After payment, click the button below to confirm
-                  </p>
-
-                  <button
-                    onClick={checkPixPayment}
-                    className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-                  >
-                    I already paid - Check status
-                  </button>
+              <div className="space-y-2 text-sm text-gray-600 mb-6">
+                <p className="font-medium text-gray-900">Available payment methods:</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📱</span>
+                  <span>PIX - Instant payment</span>
                 </div>
-              )}
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">💳</span>
+                  <span>Credit Card - Up to 12x installments</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Link
+                  href="/checkout"
+                  className="flex-1 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-center"
+                >
+                  Back
+                </Link>
+                <button
+                  onClick={handlePayment}
+                  disabled={processing}
+                  className="flex-1 py-3 bg-[#009ee3] text-white rounded-lg hover:bg-[#0088c7] disabled:opacity-50 font-medium"
+                >
+                  {processing ? 'Processing...' : 'Continue to Payment'}
+                </button>
+              </div>
             </div>
           </div>
 
