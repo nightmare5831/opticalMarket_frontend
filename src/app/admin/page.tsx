@@ -25,8 +25,6 @@ export default function AdminPage() {
       router.push('/login');
     } else if (user.role !== 'ADMIN') {
       router.push('/');
-    } else {
-      checkBlingStatus();
     }
   }, [user, loading, router]);
 
@@ -37,13 +35,13 @@ export default function AdminPage() {
       const status = await Request.Get('/bling/status');
       setBlingStatus(status);
       if (status.connected) {
-        toast.success('Connected to Bling ERP successfully!', toastConfig);
+        toast.success('Connected to Bling ERP successfully!', { ...toastConfig, toastId: 'bling-connected' });
       } else {
-        toast.info('Not connected to Bling ERP', toastConfig);
+        toast.info('Not connected to Bling ERP', { ...toastConfig, toastId: 'bling-not-connected' });
       }
     } catch (error: any) {
       console.error('Failed to check Bling status:', error);
-      toast.error(`Failed to check connection: ${error?.response?.data?.message || error.message || 'Unknown error'}`, toastConfig);
+      toast.error(`Failed to check connection: ${error?.response?.data?.message || error.message || 'Unknown error'}`, { ...toastConfig, toastId: 'bling-check-error' });
       setBlingStatus(null);
     } finally {
       setCheckLoading(false);
@@ -60,11 +58,11 @@ export default function AdminPage() {
       setProducts(data.data || []);
 
       if (data.data && data.data.length === 0) {
-        setMessage('⚠️ No products found in your Bling ERP account. Please add products in Bling first.');
+        toast.warning('No products found in your Bling ERP account. Please add products in Bling first.', toastConfig);
       } else if (data.data && data.data.length > 0) {
         setMessage(`✅ Successfully synced ${data.data.length} products from Bling!`);
       } else {
-        setMessage(`✅ ${data.message || 'Sync completed successfully'}`);
+        toast.success(data.message || 'Sync completed successfully', toastConfig);
       }
 
       console.log('Sync result:', data);
@@ -128,15 +126,13 @@ export default function AdminPage() {
             >
               {checkLoading ? 'Checking...' : 'Check Connection'}
             </button>
-            {blingStatus?.connected && (
-              <button
-                onClick={syncProducts}
-                disabled={syncLoading}
-                className="px-4 py-2 rounded-md font-medium bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-300"
-              >
-                {syncLoading ? 'Syncing...' : 'Sync Products'}
-              </button>
-            )}
+            <button
+              onClick={syncProducts}
+              disabled={syncLoading}
+              className="px-4 py-2 rounded-md font-medium bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-300"
+            >
+              {syncLoading ? 'Syncing...' : 'Sync Products'}
+            </button>
           </div>
           {blingStatus && (
             <div className="mb-4">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -30,6 +31,7 @@ interface Category {
 
 export default function ProductsPage() {
   const { token, user } = useAuthStore();
+  const { addItem } = useCartStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,7 @@ export default function ProductsPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [blingConnected, setBlingConnected] = useState(false);
   const [checkingBling, setCheckingBling] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -183,36 +186,84 @@ export default function ProductsPage() {
     setCurrentPage(1);
   }, [searchName, searchSku, selectedCategory, minPrice, maxPrice, minStock, maxStock]);
 
+  const handleAddToCart = (product: Product) => {
+    if (product.stock < 1) {
+      toast.error('Product is out of stock', toastConfig);
+      return;
+    }
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      stock: product.stock,
+    });
+    toast.success(`${product.name} added to cart!`, toastConfig);
+  };
+
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      sku: product.sku,
+      name: product.name,
+      description: product.description || '',
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      categoryId: product.category?.id || '',
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingProduct(null);
+    setFormData({ sku: '', name: '', description: '', price: '', stock: '', categoryId: '' });
+    setImageFile(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
 
     try {
-      const formPayload = new FormData();
-      formPayload.append('sku', formData.sku);
-      formPayload.append('name', formData.name);
-      formPayload.append('description', formData.description);
-      formPayload.append('price', formData.price);
-      formPayload.append('stock', formData.stock);
-      formPayload.append('categoryId', formData.categoryId);
-      if (imageFile) {
-        formPayload.append('image', imageFile);
+      if (editingProduct) {
+        // Update existing product
+        await axios.put(`${API_URL}/products/${editingProduct.id}`, {
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          stock: parseInt(formData.stock),
+          categoryId: formData.categoryId,
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success('Product updated successfully!', toastConfig);
+      } else {
+        // Create new product
+        const formPayload = new FormData();
+        formPayload.append('sku', formData.sku);
+        formPayload.append('name', formData.name);
+        formPayload.append('description', formData.description);
+        formPayload.append('price', formData.price);
+        formPayload.append('stock', formData.stock);
+        formPayload.append('categoryId', formData.categoryId);
+        if (imageFile) {
+          formPayload.append('image', imageFile);
+        }
+
+        await axios.post(`${API_URL}/products`, formPayload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        toast.success('Product created successfully!', toastConfig);
       }
 
-      await axios.post(`${API_URL}/products`, formPayload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      toast.success('Product created successfully!', toastConfig);
-      setShowModal(false);
-      setFormData({ sku: '', name: '', description: '', price: '', stock: '', categoryId: '' });
-      setImageFile(null);
+      closeModal();
       fetchAllProducts();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error creating product', toastConfig);
+      toast.error(error.response?.data?.message || 'Error saving product', toastConfig);
     } finally {
       setFormLoading(false);
     }
@@ -390,20 +441,33 @@ export default function ProductsPage() {
                         <span className="text-gray-300 text-5xl">📷</span>
                       </div>
                     )}
-                    {/* Eye Icon */}
-                    <button
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setShowProductDetail(true);
-                      }}
-                      className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition-all opacity-0 group-hover:opacity-100 transform hover:scale-110"
-                      title="View Details"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </button>
+                    {/* Action Icons */}
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      {(user?.role === 'ADMIN' || user?.role === 'SELLER') && (
+                        <button
+                          onClick={() => openEditModal(product)}
+                          className="bg-white/95 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-yellow-500 hover:text-white transition-all transform hover:scale-110"
+                          title="Edit Product"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          setShowProductDetail(true);
+                        }}
+                        className="bg-white/95 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110"
+                        title="View Details"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                    </div>
                     {/* Stock Badge */}
                     <div className="absolute bottom-3 left-3">
                       <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${product.stock > 10 ? 'bg-green-100 text-green-700' : product.stock > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
@@ -421,6 +485,22 @@ export default function ProductsPage() {
                       <p className="text-2xl font-bold text-blue-600">
                         R$ {parseFloat(product.price.toString()).toFixed(2)}
                       </p>
+                      {user?.role === 'CUSTOMER' && (
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          disabled={product.stock < 1}
+                          className={`p-2 rounded-lg transition ${
+                            product.stock < 1
+                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                          title={product.stock < 1 ? 'Out of stock' : 'Add to cart'}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -480,19 +560,19 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Add Product Modal */}
+      {/* Add/Edit Product Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
             <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center rounded-t-lg">
-              <h2 className="text-xl font-bold text-gray-900">Add New Product</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+              <h2 className="text-xl font-bold text-gray-900">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">SKU *</label>
-                <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} required className="w-full p-2 border rounded" />
+                <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} required disabled={!!editingProduct} className={`w-full p-2 border rounded ${editingProduct ? 'bg-gray-100' : ''}`} />
               </div>
 
               <div>
@@ -538,9 +618,9 @@ export default function ProductsPage() {
 
               <div className="flex gap-3 pt-4">
                 <button type="submit" disabled={formLoading} className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400">
-                  {formLoading ? 'Creating...' : 'Create Product'}
+                  {formLoading ? 'Saving...' : editingProduct ? 'Update Product' : 'Create Product'}
                 </button>
-                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+                <button type="button" onClick={closeModal} className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
               </div>
             </form>
           </div>
@@ -614,6 +694,29 @@ export default function ProductsPage() {
                     <div className="mt-6">
                       <h4 className="text-sm font-semibold text-gray-900 mb-2">Description</h4>
                       <p className="text-gray-600 leading-relaxed">{selectedProduct.description}</p>
+                    </div>
+                  )}
+
+                  {/* Add to Cart Button for Customers */}
+                  {user?.role === 'CUSTOMER' && (
+                    <div className="mt-6 pt-4 border-t">
+                      <button
+                        onClick={() => {
+                          handleAddToCart(selectedProduct);
+                          setShowProductDetail(false);
+                        }}
+                        disabled={selectedProduct.stock < 1}
+                        className={`w-full py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                          selectedProduct.stock < 1
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        {selectedProduct.stock < 1 ? 'Out of Stock' : 'Add to Cart'}
+                      </button>
                     </div>
                   )}
                 </div>

@@ -2,19 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/cartStore';
 import { getNavigationTabs, getHomePath } from '@/lib/navigation';
 import BlingConnectionModal from '@/components/BlingConnectionModal';
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, loggingOut } = useAuthStore();
+  const { getItemCount } = useCartStore();
   const [showBlingModal, setShowBlingModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const navigationTabs = getNavigationTabs(user?.role);
   const homePath = getHomePath(user?.role);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setIsNavigating(false);
@@ -27,7 +35,7 @@ export default function Header() {
     router.push(path);
   };
 
-  if (!user) return null;
+  if (!user && !loggingOut) return null;
 
   return (
     <header className="bg-white border-b sticky top-0 z-40">
@@ -65,7 +73,34 @@ export default function Header() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-3">
-            <p className="hidden sm:block text-sm font-medium text-gray-900">{user.name}</p>
+            {/* Cart Icon */}
+            <Link
+              href="/cart"
+              className="relative p-2 text-gray-600 hover:text-blue-600 transition"
+              title="Shopping Cart"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              {mounted && getItemCount() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                  {getItemCount()}
+                </span>
+              )}
+            </Link>
+
+            {user && <p className="hidden sm:block text-sm font-medium text-gray-900">{user.name}</p>}
 
             {/* Connect Bling Button */}
             {(user?.role === 'ADMIN' || user?.role === 'SELLER') && (
@@ -102,9 +137,12 @@ export default function Header() {
       />
 
       {/* Loading Spinner Overlay */}
-      {isNavigating && (
+      {(isNavigating || loggingOut) && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            {loggingOut && <p className="mt-3 text-gray-700 font-medium">Logging out...</p>}
+          </div>
         </div>
       )}
     </header>
