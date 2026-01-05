@@ -30,7 +30,10 @@ export default function CartPage() {
     return null;
   }
 
-  const total = getTotal();
+  const total = items.reduce(
+    (sum, item) => sum + parseFloat(item.price.toString()) * item.quantity,
+    0
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
