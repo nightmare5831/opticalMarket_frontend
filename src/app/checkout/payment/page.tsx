@@ -17,6 +17,7 @@ export default function CheckoutPaymentPage() {
   const { items, getTotal, clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [shipping, setShipping] = useState<{ name: string; price: number; deliveryDays: number } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -30,9 +31,12 @@ export default function CheckoutPaymentPage() {
     }
 
     const addressId = sessionStorage.getItem('checkout_address_id');
-    if (!addressId) {
+    const shippingData = sessionStorage.getItem('checkout_shipping');
+    if (!addressId || !shippingData) {
       router.push('/checkout');
+      return;
     }
+    setShipping(JSON.parse(shippingData));
   }, [user, loading, router]);
 
   const handlePayment = async () => {
@@ -62,6 +66,7 @@ export default function CheckoutPaymentPage() {
 
       clearCart();
       sessionStorage.removeItem('checkout_address_id');
+      sessionStorage.removeItem('checkout_shipping');
 
       window.location.href = checkout.sandboxInitPoint || checkout.initPoint;
     } catch (error: any) {
@@ -175,10 +180,24 @@ export default function CheckoutPaymentPage() {
                   </div>
                 ))}
               </div>
-              <div className="border-t mt-4 pt-4">
-                <div className="flex justify-between font-semibold">
+              <div className="border-t mt-4 pt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span>R$ {total.toFixed(2)}</span>
+                </div>
+                {shipping && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      Shipping ({shipping.name})
+                    </span>
+                    <span>R$ {shipping.price.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold pt-2 border-t">
                   <span>Total</span>
-                  <span className="text-blue-600">R$ {total.toFixed(2)}</span>
+                  <span className="text-blue-600">
+                    R$ {(total + (shipping?.price || 0)).toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
