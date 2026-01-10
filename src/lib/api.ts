@@ -27,6 +27,9 @@ const Request = {
   Put: async (url: string, body: any) => {
     return await Axios.put(url, body, { headers: getHeaders() }).then((res) => res.data)
   },
+  Patch: async (url: string, body: any) => {
+    return await Axios.patch(url, body, { headers: getHeaders() }).then((res) => res.data)
+  },
   Delete: async (url: string, body?: any) => {
     return await Axios.delete(url, { data: body, headers: getHeaders() }).then((res) => res.data)
   },

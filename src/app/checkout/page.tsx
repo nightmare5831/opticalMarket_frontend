@@ -22,6 +22,13 @@ interface Address {
   isDefault: boolean;
 }
 
+interface ShippingOption {
+  service: string;
+  name: string;
+  price: number;
+  deliveryDays: number;
+}
+
 export default function CheckoutAddressPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -32,6 +39,9 @@ export default function CheckoutAddressPage() {
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
+  const [loadingShipping, setLoadingShipping] = useState(false);
 
   const [newAddress, setNewAddress] = useState({
     street: '',
@@ -42,6 +52,18 @@ export default function CheckoutAddressPage() {
     state: '',
     zipCode: '',
   });
+
+  const fillMockAddress = () => {
+    setNewAddress({
+      street: 'Rua das Flores',
+      number: '123',
+      complement: 'Apt 45',
+      neighborhood: 'Centro',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01310100',
+    });
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -63,14 +85,37 @@ export default function CheckoutAddressPage() {
       const defaultAddr = data.find((a: Address) => a.isDefault);
       if (defaultAddr) {
         setSelectedAddressId(defaultAddr.id);
+        fetchShipping(defaultAddr.zipCode);
       } else if (data.length > 0) {
         setSelectedAddressId(data[0].id);
+        fetchShipping(data[0].zipCode);
       }
     } catch (error) {
       console.error('Error fetching addresses:', error);
     } finally {
       setLoadingAddresses(false);
     }
+  };
+
+  const fetchShipping = async (cep: string) => {
+    setLoadingShipping(true);
+    try {
+      const options = await Request.Get(`/shipping/calculate?cep=${cep}`);
+      setShippingOptions(options);
+      if (options.length > 0) {
+        setSelectedShipping(options[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching shipping:', error);
+    } finally {
+      setLoadingShipping(false);
+    }
+  };
+
+  const handleAddressSelect = (address: Address) => {
+    setSelectedAddressId(address.id);
+    setSelectedShipping(null);
+    fetchShipping(address.zipCode);
   };
 
   const handleCreateAddress = async (e: React.FormEvent) => {
@@ -85,6 +130,7 @@ export default function CheckoutAddressPage() {
       setAddresses([...addresses, created]);
       setSelectedAddressId(created.id);
       setShowNewAddressForm(false);
+      fetchShipping(created.zipCode);
       setNewAddress({
         street: '',
         number: '',
@@ -110,7 +156,12 @@ export default function CheckoutAddressPage() {
       toast.error('Please select a delivery address', toastConfig);
       return;
     }
+    if (!selectedShipping) {
+      toast.error('Please select a shipping method', toastConfig);
+      return;
+    }
     sessionStorage.setItem('checkout_address_id', selectedAddressId);
+    sessionStorage.setItem('checkout_shipping', JSON.stringify(selectedShipping));
     router.push('/checkout/payment');
   };
 
@@ -194,7 +245,7 @@ export default function CheckoutAddressPage() {
                             name="address"
                             value={address.id}
                             checked={selectedAddressId === address.id}
-                            onChange={() => setSelectedAddressId(address.id)}
+                            onChange={() => handleAddressSelect(address)}
                             className="mt-1"
                           />
                           <div className="flex-1">
@@ -233,6 +284,15 @@ export default function CheckoutAddressPage() {
 
               {showNewAddressForm && (
                 <form onSubmit={handleCreateAddress} className="mt-4 space-y-4">
+                  {process.env.NODE_ENV === 'development' && (
+                    <button
+                      type="button"
+                      onClick={fillMockAddress}
+                      className="text-sm text-orange-600 hover:text-orange-700 underline"
+                    >
+                      Fill Mock Address (Dev Only)
+                    </button>
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -359,6 +419,55 @@ export default function CheckoutAddressPage() {
                 </form>
               )}
             </div>
+
+            {selectedAddressId && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Shipping Method
+                </h2>
+                {loadingShipping ? (
+                  <div className="text-center py-4 text-gray-500">
+                    Calculating shipping...
+                  </div>
+                ) : shippingOptions.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No shipping options available
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {shippingOptions.map((option) => (
+                      <label
+                        key={option.service}
+                        className={`block p-4 border rounded-lg cursor-pointer transition-colors ${
+                          selectedShipping?.service === option.service
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="shipping"
+                            value={option.service}
+                            checked={selectedShipping?.service === option.service}
+                            onChange={() => setSelectedShipping(option)}
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{option.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {option.deliveryDays} business days
+                            </p>
+                          </div>
+                          <span className="font-semibold text-gray-900">
+                            R$ {option.price.toFixed(2)}
+                          </span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-1">
@@ -374,15 +483,29 @@ export default function CheckoutAddressPage() {
                   </div>
                 ))}
               </div>
-              <div className="border-t mt-4 pt-4">
-                <div className="flex justify-between font-semibold">
+              <div className="border-t mt-4 pt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span>R$ {total.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Shipping</span>
+                  <span>
+                    {selectedShipping
+                      ? `R$ ${selectedShipping.price.toFixed(2)}`
+                      : '-'}
+                  </span>
+                </div>
+                <div className="flex justify-between font-semibold pt-2 border-t">
                   <span>Total</span>
-                  <span className="text-blue-600">R$ {total.toFixed(2)}</span>
+                  <span className="text-blue-600">
+                    R$ {(total + (selectedShipping?.price || 0)).toFixed(2)}
+                  </span>
                 </div>
               </div>
               <button
                 onClick={handleContinue}
-                disabled={!selectedAddressId}
+                disabled={!selectedAddressId || !selectedShipping}
                 className="w-full mt-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 Continue to Payment
