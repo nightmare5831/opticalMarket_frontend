@@ -73,12 +73,12 @@ export default function Header() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-3">
-            {/* Orders Icon - For customers and sellers */}
-            {(user?.role === 'CUSTOMER' || user?.role === 'SELLER') && (
+            {/* Orders Icon - For customers, sellers, and admins */}
+            {(user?.role === 'CUSTOMER' || user?.role === 'SELLER' || user?.role === 'ADMIN') && (
               <Link
-                href={user?.role === 'SELLER' ? '/seller/orders' : '/orders'}
+                href={user?.role === 'CUSTOMER' ? '/orders' : '/seller/orders'}
                 className="relative p-2 text-gray-600 hover:text-blue-600 transition"
-                title={user?.role === 'SELLER' ? 'Seller Orders' : 'My Orders'}
+                title={user?.role === 'CUSTOMER' ? 'My Orders' : 'Manage Orders'}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
