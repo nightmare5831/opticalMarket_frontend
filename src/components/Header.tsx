@@ -73,8 +73,8 @@ export default function Header() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-3">
-            {/* Orders Icon - Only for customers */}
-            {user?.role === 'CUSTOMER' && (
+            {/* Orders Icon - For customers and sellers */}
+            {(user?.role === 'CUSTOMER' || user?.role === 'SELLER') && (
               <Link
                 href="/orders"
                 className="relative p-2 text-gray-600 hover:text-blue-600 transition"
