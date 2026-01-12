@@ -57,6 +57,7 @@ export default function CheckoutPaymentPage() {
         addressId,
         paymentMethod: 'PIX',
         shippingMethod: shippingInfo?.name,
+        shippingCost: shippingInfo?.price || 0,
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
