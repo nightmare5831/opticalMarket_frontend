@@ -81,6 +81,10 @@ export default function OrdersPage() {
       case 'APPROVED':
       case 'PAID':
         return 'bg-green-100 text-green-800';
+      case 'SHIPPED':
+        return 'bg-blue-100 text-blue-800';
+      case 'DELIVERED':
+        return 'bg-purple-100 text-purple-800';
       case 'PENDING':
       case 'IN_PROCESS':
         return 'bg-yellow-100 text-yellow-800';
@@ -89,6 +93,23 @@ export default function OrdersPage() {
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getShippingStatus = (orderStatus: string) => {
+    switch (orderStatus) {
+      case 'PENDING':
+        return { text: 'Awaiting Payment', color: 'text-yellow-600' };
+      case 'PAID':
+        return { text: 'Processing', color: 'text-blue-600' };
+      case 'SHIPPED':
+        return { text: 'In Transit', color: 'text-blue-600' };
+      case 'DELIVERED':
+        return { text: 'Delivered', color: 'text-green-600' };
+      case 'CANCELLED':
+        return { text: 'Cancelled', color: 'text-red-600' };
+      default:
+        return { text: orderStatus, color: 'text-gray-600' };
     }
   };
 
@@ -208,7 +229,28 @@ export default function OrdersPage() {
 
                 {expandedOrder === order.id && (
                   <div className="border-t px-4 py-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {/* Shipping Status Banner */}
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center gap-3">
+                      <div className="flex-shrink-0">
+                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">Shipping Status</p>
+                        <p className={`font-semibold ${getShippingStatus(order.status).color}`}>
+                          {getShippingStatus(order.status).text}
+                        </p>
+                      </div>
+                      {order.shippingMethod && (
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">Method</p>
+                          <p className="font-medium">{order.shippingMethod}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Payment</p>
                         <div className="flex items-center gap-2">
@@ -222,12 +264,6 @@ export default function OrdersPage() {
                           </span>
                         </div>
                       </div>
-                      {order.shippingMethod && (
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Shipping</p>
-                          <p className="font-medium">{order.shippingMethod}</p>
-                        </div>
-                      )}
                       {order.address && (
                         <div>
                           <p className="text-sm text-gray-500 mb-1">
