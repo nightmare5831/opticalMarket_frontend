@@ -50,9 +50,13 @@ export default function CheckoutPaymentPage() {
     setProcessing(true);
 
     try {
+      const shippingData = sessionStorage.getItem('checkout_shipping');
+      const shippingInfo = shippingData ? JSON.parse(shippingData) : null;
+
       const order = await Request.Post('/orders', {
         addressId,
         paymentMethod: 'PIX',
+        shippingMethod: shippingInfo?.name,
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
