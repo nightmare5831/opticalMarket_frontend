@@ -33,6 +33,7 @@ interface Order {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
+  shippingMethod: string | null;
   total: string;
   createdAt: string;
   items: OrderItem[];
@@ -219,7 +220,7 @@ export default function SellerOrdersPage() {
 
                 {expandedOrder === order.id && (
                   <div className="border-t px-4 py-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Customer</p>
                         <p className="font-medium">{order.user.name}</p>
@@ -238,6 +239,12 @@ export default function SellerOrdersPage() {
                           </span>
                         </div>
                       </div>
+                      {order.shippingMethod && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Shipping</p>
+                          <p className="font-medium">{order.shippingMethod}</p>
+                        </div>
+                      )}
                       {order.address && (
                         <div>
                           <p className="text-sm text-gray-500 mb-1">

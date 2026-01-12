@@ -33,6 +33,7 @@ interface Order {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
+  shippingMethod: string | null;
   total: string;
   createdAt: string;
   items: OrderItem[];
@@ -207,7 +208,7 @@ export default function OrdersPage() {
 
                 {expandedOrder === order.id && (
                   <div className="border-t px-4 py-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Payment</p>
                         <div className="flex items-center gap-2">
@@ -221,6 +222,12 @@ export default function OrdersPage() {
                           </span>
                         </div>
                       </div>
+                      {order.shippingMethod && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Shipping</p>
+                          <p className="font-medium">{order.shippingMethod}</p>
+                        </div>
+                      )}
                       {order.address && (
                         <div>
                           <p className="text-sm text-gray-500 mb-1">

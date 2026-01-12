@@ -76,9 +76,9 @@ export default function Header() {
             {/* Orders Icon - For customers and sellers */}
             {(user?.role === 'CUSTOMER' || user?.role === 'SELLER') && (
               <Link
-                href="/orders"
+                href={user?.role === 'SELLER' ? '/seller/orders' : '/orders'}
                 className="relative p-2 text-gray-600 hover:text-blue-600 transition"
-                title="My Orders"
+                title={user?.role === 'SELLER' ? 'Seller Orders' : 'My Orders'}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
