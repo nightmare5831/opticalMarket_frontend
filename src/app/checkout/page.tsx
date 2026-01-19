@@ -459,7 +459,7 @@ export default function CheckoutAddressPage() {
                             </p>
                           </div>
                           <span className="font-semibold text-gray-900">
-                            R$ {option.price.toFixed(2)}
+                            R$ {Number(option.price).toFixed(2)}
                           </span>
                         </div>
                       </label>
@@ -492,7 +492,7 @@ export default function CheckoutAddressPage() {
                   <span className="text-gray-600">Shipping</span>
                   <span>
                     {selectedShipping
-                      ? `R$ ${selectedShipping.price.toFixed(2)}`
+                      ? `R$ ${Number(selectedShipping.price).toFixed(2)}`
                       : '-'}
                   </span>
                 </div>
