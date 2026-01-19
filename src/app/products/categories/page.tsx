@@ -29,6 +29,7 @@ export default function CategoriesPage() {
   const [blingConnected, setBlingConnected] = useState(false);
   const [checkingBling, setCheckingBling] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -37,7 +38,7 @@ export default function CategoriesPage() {
   useEffect(() => {
     if (!mounted) return;
 
-    if (!token || (user?.role !== 'ADMIN' && user?.role !== 'SELLER')) {
+    if (!token || user?.role !== 'SELLER') {
       router.push('/login');
       return;
     }
@@ -99,6 +100,7 @@ export default function CategoriesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       if (editingId) {
         await axios.put(`${API_URL}/categories/${editingId}`, formData, {
@@ -116,6 +118,8 @@ export default function CategoriesPage() {
       fetchCategories();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error saving category', toastConfig);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -163,6 +167,7 @@ export default function CategoriesPage() {
               setShowForm(!showForm);
               setEditingId(null);
               setFormData({ name: '', slug: '' });
+              setSubmitting(false);
             }}
             disabled={!blingConnected || checkingBling}
             className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
@@ -189,6 +194,7 @@ export default function CategoriesPage() {
                     setShowForm(false);
                     setEditingId(null);
                     setFormData({ name: '', slug: '' });
+                    setSubmitting(false);
                   }}
                   className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
                 >
@@ -228,9 +234,16 @@ export default function CategoriesPage() {
                 <div className="flex gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium"
+                    disabled={submitting}
+                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {editingId ? 'Update Category' : 'Create Category'}
+                    {submitting && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    )}
+                    {submitting
+                      ? (editingId ? 'Updating...' : 'Creating...')
+                      : (editingId ? 'Update Category' : 'Create Category')
+                    }
                   </button>
                   <button
                     type="button"
@@ -238,8 +251,10 @@ export default function CategoriesPage() {
                       setShowForm(false);
                       setEditingId(null);
                       setFormData({ name: '', slug: '' });
+                      setSubmitting(false);
                     }}
-                    className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 font-medium"
+                    disabled={submitting}
+                    className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>

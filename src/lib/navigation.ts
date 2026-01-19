@@ -6,8 +6,9 @@ export interface NavTab {
 
 // Admin navigation tabs
 export const ADMIN_TABS: NavTab[] = [
-  { label: 'Products', path: '/products' },
-  { label: 'Categories', path: '/products/categories' },
+  { label: 'Products', path: '/admin/products' },
+  { label: 'Users', path: '/admin/users' },
+  { label: 'Orders', path: '/admin/orders' },
 ];
 
 // Seller navigation tabs

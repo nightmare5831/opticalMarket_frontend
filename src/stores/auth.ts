@@ -6,6 +6,7 @@ interface User {
   email: string;
   name: string;
   role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
+  status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
 }
 
 interface AuthState {
@@ -24,13 +25,10 @@ export const useAuthStore = create<AuthState>()(
       loggingOut: false,
       setAuth: (user, token) => set({ user, token, loggingOut: false }),
       logout: () => {
-        set({ loggingOut: true });
-        setTimeout(() => {
-          set({ user: null, token: null, loggingOut: false });
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login';
-          }
-        }, 100);
+        set({ user: null, token: null, loggingOut: true });
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       },
     }),
     {

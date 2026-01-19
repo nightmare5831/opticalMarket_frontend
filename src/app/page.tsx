@@ -97,8 +97,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* ERP Integration Section - Only for ADMIN and SELLER */}
-        {(user.role === 'ADMIN' || user.role === 'SELLER') && (
+        {/* ERP Integration Section - Only for SELLER */}
+        {user.role === 'SELLER' && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">
               Bling ERP Integration

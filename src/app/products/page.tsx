@@ -76,12 +76,11 @@ export default function ProductsPage() {
     if (!mounted) return;
 
     const initialize = async () => {
-      // For ADMIN and SELLER, check Bling connection first
-      if (user?.role === 'ADMIN' || user?.role === 'SELLER') {
+      if (user?.role === 'SELLER') {
         const isConnected = await checkBlingConnection();
         if (!isConnected) {
           setLoading(false);
-          return; // Don't fetch products if not connected
+          return; 
         }
       }
 
@@ -135,7 +134,7 @@ export default function ProductsPage() {
   const fetchAllProducts = async () => {
     setLoading(true);
     try {
-      // Customers and Admins see all products, Sellers see only their own
+      // Sellers see only their own products
       const endpoint = user?.role === 'SELLER'
         ? `${API_URL}/products/seller/me`
         : `${API_URL}/products`;
@@ -281,12 +280,10 @@ export default function ProductsPage() {
             <p className="text-gray-600 mt-1">
               {user?.role === 'SELLER'
                 ? 'Manage your products'
-                : user?.role === 'ADMIN'
-                ? 'View and manage all products'
                 : 'Browse all available products'}
             </p>
           </div>
-          {(user?.role === 'SELLER' || user?.role === 'ADMIN') && (
+          {user?.role === 'SELLER' && (
             <button
               onClick={() => setShowModal(true)}
               disabled={!blingConnected || checkingBling}
@@ -409,7 +406,7 @@ export default function ProductsPage() {
               {checkingBling ? 'Checking Bling connection...' : 'Loading products...'}
             </p>
           </div>
-        ) : !blingConnected && (user?.role === 'ADMIN' || user?.role === 'SELLER') ? (
+        ) : !blingConnected && user?.role === 'SELLER' ? (
           <div className="text-center py-24 bg-white rounded-xl border-2 border-dashed border-orange-300">
             <div className="text-7xl mb-4">⚠️</div>
             <p className="text-gray-900 text-xl font-semibold mb-2">Bling ERP Not Connected</p>
@@ -443,7 +440,7 @@ export default function ProductsPage() {
                     )}
                     {/* Action Icons */}
                     <div className="absolute top-3 right-3 flex gap-2">
-                      {(user?.role === 'ADMIN' || user?.role === 'SELLER') && (
+                      {user?.role === 'SELLER' && (
                         <button
                           onClick={() => openEditModal(product)}
                           className="bg-white/95 backdrop-blur-sm p-2.5 rounded-full shadow-lg hover:bg-yellow-500 hover:text-white transition-all transform hover:scale-110"

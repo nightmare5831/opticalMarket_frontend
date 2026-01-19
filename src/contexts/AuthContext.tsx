@@ -8,6 +8,7 @@ interface User {
   email: string;
   name: string;
   role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
+  status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
 }
 
 interface AuthContextType {

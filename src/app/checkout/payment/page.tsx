@@ -195,7 +195,7 @@ export default function CheckoutPaymentPage() {
                     <span className="text-gray-600">
                       Shipping ({shipping.name})
                     </span>
-                    <span>R$ {shipping.price.toFixed(2)}</span>
+                    <span>R$ {Number(shipping.price).toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-semibold pt-2 border-t">

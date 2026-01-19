@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,7 +11,6 @@ import { toastConfig } from '@/lib/toast';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setAuth } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,12 +31,18 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const data = await Request.Post('/auth/register', { name, email, password, role });
-      setAuth(data.user, data.token);
-      toast.success('Registration successful! Welcome to Optical Market.', toastConfig);
+      await Request.Post('/auth/register', { name, email, password, role });
+
+      // Redirect all users to login page after registration
+      // Login flow will handle user status checks
+      const message = role === 'SELLER'
+        ? 'Registration successful! Please wait for admin approval before logging in.'
+        : 'Registration successful! Please login to continue.';
+
+      toast.success(message, toastConfig);
       setTimeout(() => {
-        router.push('/');
-      }, 1000);
+        router.push('/login');
+      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
       toast.error(err.response?.data?.message || 'Registration failed. Please try again.', toastConfig);
