@@ -122,6 +122,17 @@ export default function AdminOrdersPage() {
     setCurrentPage(1);
   };
 
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      await Request.Patch(`/admin/orders/${orderId}/status`, { status: newStatus });
+      toast.success('Order status updated successfully', toastConfig);
+      fetchOrders();
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+      toast.error('Failed to update order status', toastConfig);
+    }
+  };
+
   if (loading || !user || user.role !== 'ADMIN') {
     return null;
   }
@@ -414,7 +425,7 @@ export default function AdminOrdersPage() {
                       {expandedOrder === order.id && (
                         <tr key={`${order.id}-details`}>
                           <td colSpan={7} className="px-6 py-4 bg-gray-50">
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-2 gap-6 mb-4">
                               <div>
                                 <h4 className="font-semibold text-gray-900 mb-3">Order Items</h4>
                                 <ul className="space-y-2">
@@ -436,6 +447,61 @@ export default function AdminOrdersPage() {
                                   </div>
                                 ) : (
                                   <p className="text-sm text-gray-500">No address provided</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="border-t pt-4">
+                              <h4 className="font-semibold text-gray-900 mb-3">Update Order Status</h4>
+                              <div className="flex gap-2 flex-wrap">
+                                {order.status === 'PENDING' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleUpdateOrderStatus(order.id, 'PAID')}
+                                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                      Mark as Paid
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateOrderStatus(order.id, 'CANCELLED')}
+                                      className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                                    >
+                                      Cancel Order
+                                    </button>
+                                  </>
+                                )}
+                                {order.status === 'PAID' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleUpdateOrderStatus(order.id, 'SHIPPED')}
+                                      className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+                                    >
+                                      Mark as Shipped
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateOrderStatus(order.id, 'CANCELLED')}
+                                      className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                                    >
+                                      Cancel Order
+                                    </button>
+                                  </>
+                                )}
+                                {order.status === 'SHIPPED' && (
+                                  <button
+                                    onClick={() => handleUpdateOrderStatus(order.id, 'DELIVERED')}
+                                    className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                                  >
+                                    Mark as Delivered
+                                  </button>
+                                )}
+                                {order.status === 'DELIVERED' && (
+                                  <div className="text-sm text-green-700 bg-green-50 px-4 py-2 rounded-lg">
+                                    ✓ Order completed - No actions available
+                                  </div>
+                                )}
+                                {order.status === 'CANCELLED' && (
+                                  <div className="text-sm text-red-700 bg-red-50 px-4 py-2 rounded-lg">
+                                    ✗ Order cancelled - No actions available
+                                  </div>
                                 )}
                               </div>
                             </div>
