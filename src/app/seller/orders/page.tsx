@@ -45,8 +45,6 @@ interface Order {
   };
 }
 
-const ORDER_STATUSES = ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-
 export default function SellerOrdersPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -64,6 +62,10 @@ export default function SellerOrdersPage() {
     }
     if (user.role !== 'SELLER' && user.role !== 'ADMIN') {
       router.push('/');
+      return;
+    }
+    if (user.status === 'PENDING') {
+      router.push('/seller');
       return;
     }
     fetchOrders();
@@ -159,7 +161,38 @@ export default function SellerOrdersPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Seller Orders</h1>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Seller Orders</h1>
+            <div className="flex items-center gap-3 mt-2">
+              {user?.sellerType && (
+                <span className={`px-2 py-1 text-xs font-medium rounded ${
+                  user.sellerType === 'B2C_MERCHANT' ? 'bg-cyan-100 text-cyan-800' : 'bg-indigo-100 text-indigo-800'
+                }`}>
+                  {user.sellerType === 'B2C_MERCHANT' ? 'B2C Merchant' : 'B2B Supplier'}
+                </span>
+              )}
+              {user?.mercadoPagoConnected ? (
+                <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  MP Connected
+                </span>
+              ) : (
+                <span className="px-2 py-1 text-xs font-medium rounded bg-yellow-100 text-yellow-800">
+                  MP Not Connected
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/seller')}
+            className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-lg hover:bg-blue-50"
+          >
+            Back to Dashboard
+          </button>
+        </div>
 
         {orders.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">

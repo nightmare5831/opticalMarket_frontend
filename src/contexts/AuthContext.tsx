@@ -9,6 +9,11 @@ interface User {
   name: string;
   role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
+  sellerType?: 'B2C_MERCHANT' | 'B2B_SUPPLIER';
+  cnpj?: string;
+  legalCompanyName?: string;
+  mercadoPagoConnected?: boolean;
+  mercadoPagoAccountId?: string;
 }
 
 interface AuthContextType {

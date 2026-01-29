@@ -43,6 +43,11 @@ export default function CategoriesPage() {
       return;
     }
 
+    if (user?.status === 'PENDING') {
+      router.push('/seller');
+      return;
+    }
+
     const initialize = async () => {
       const isConnected = await checkBlingConnection();
       if (!isConnected) {

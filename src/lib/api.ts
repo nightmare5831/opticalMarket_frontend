@@ -2,6 +2,10 @@ import axios, { AxiosRequestConfig } from 'axios'
 
 const Axios = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://opticalmarket-backend-6pfl.onrender.com/api',
+  timeout: 30000, // 30 second timeout
+  headers: {
+    'Content-Type': 'application/json',
+  },
 })
 
 const getHeaders = () => {
