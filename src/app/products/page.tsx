@@ -21,6 +21,7 @@ interface Product {
   images: string[];
   category: { id: string; name: string };
   seller?: { name: string };
+  status: 'PENDING' | 'APPROVED' | 'CANCELLED';
 }
 
 interface Category {
@@ -436,6 +437,20 @@ export default function ProductsPage() {
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-gray-300 text-5xl">📷</span>
+                      </div>
+                    )}
+                    {/* Status Badge (Seller Only) */}
+                    {user?.role === 'SELLER' && (
+                      <div className="absolute top-3 left-3">
+                        <span className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-lg ${
+                          product.status === 'APPROVED'
+                            ? 'bg-green-500 text-white'
+                            : product.status === 'PENDING'
+                            ? 'bg-yellow-500 text-white'
+                            : 'bg-red-500 text-white'
+                        }`}>
+                          {product.status}
+                        </span>
                       </div>
                     )}
                     {/* Action Icons */}
