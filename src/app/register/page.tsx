@@ -15,6 +15,9 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('CUSTOMER');
+  const [sellerType, setSellerType] = useState('B2C_MERCHANT');
+  const [cnpj, setCnpj] = useState('');
+  const [legalCompanyName, setLegalCompanyName] = useState('');
   const [acceptedTos, setAcceptedTos] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,7 +34,16 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await Request.Post('/auth/register', { name, email, password, role });
+      const payload: any = { name, email, password, role };
+
+      // Add seller-specific fields if role is SELLER
+      if (role === 'SELLER') {
+        payload.sellerType = sellerType;
+        if (cnpj) payload.cnpj = cnpj;
+        if (legalCompanyName) payload.legalCompanyName = legalCompanyName;
+      }
+
+      await Request.Post('/auth/register', payload);
 
       // Redirect all users to login page after registration
       // Login flow will handle user status checks
@@ -171,6 +183,75 @@ export default function RegisterPage() {
                 </button>
               </div>
             </div>
+
+            {/* Seller-specific fields */}
+            {role === 'SELLER' && (
+              <div className="space-y-4 mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="text-sm font-semibold text-gray-900">Business Information</h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Seller Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSellerType('B2C_MERCHANT')}
+                      className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+                        sellerType === 'B2C_MERCHANT'
+                          ? 'border-blue-600 bg-blue-100 text-blue-900'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      B2C Merchant
+                      <span className="block text-xs font-normal mt-1 opacity-75">Retail seller</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSellerType('B2B_SUPPLIER')}
+                      className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+                        sellerType === 'B2B_SUPPLIER'
+                          ? 'border-blue-600 bg-blue-100 text-blue-900'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      B2B Supplier
+                      <span className="block text-xs font-normal mt-1 opacity-75">Wholesale supplier</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="legalCompanyName" className="block text-sm font-medium text-gray-700 mb-1">
+                    Legal Company Name
+                  </label>
+                  <input
+                    id="legalCompanyName"
+                    name="legalCompanyName"
+                    type="text"
+                    value={legalCompanyName}
+                    onChange={(e) => setLegalCompanyName(e.target.value)}
+                    className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Your company's legal name"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700 mb-1">
+                    CNPJ (Optional)
+                  </label>
+                  <input
+                    id="cnpj"
+                    name="cnpj"
+                    type="text"
+                    value={cnpj}
+                    onChange={(e) => setCnpj(e.target.value)}
+                    className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="00.000.000/0000-00"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-start">

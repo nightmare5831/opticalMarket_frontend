@@ -81,6 +81,9 @@ export default function AdminOrdersPage() {
       params.append('page', currentPage.toString());
       params.append('limit', '10');
       if (filterStatus) params.append('status', filterStatus);
+      if (filterPaymentMethod) params.append('paymentMethod', filterPaymentMethod);
+      if (minTotal) params.append('minTotal', minTotal);
+      if (maxTotal) params.append('maxTotal', maxTotal);
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
 
@@ -105,7 +108,7 @@ export default function AdminOrdersPage() {
     if (user && user.role === 'ADMIN') {
       fetchOrders();
     }
-  }, [user, currentPage, filterStatus, startDate, endDate]);
+  }, [user, currentPage, filterStatus, filterPaymentMethod, minTotal, maxTotal, startDate, endDate]);
 
   const handleSearch = () => {
     setCurrentPage(1);

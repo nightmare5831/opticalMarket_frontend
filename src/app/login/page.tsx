@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
 import Request from '@/lib/api';
+import { getHomePath } from '@/lib/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,11 +30,7 @@ export default function LoginPage() {
       setAuthStore(data.user, data.token);
 
       // Redirect based on role
-      if (data.user.role === 'ADMIN') {
-        router.push('/admin');
-      } else {
-        router.push('/');
-      }
+      router.push(getHomePath(data.user.role));
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
