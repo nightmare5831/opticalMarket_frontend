@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('auth-storage');
     }
     // Redirect to login page
-    router.push('/login');
+    router.push('/auth/login');
   };
 
   return (

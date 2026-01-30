@@ -50,7 +50,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
     } else if (user.role !== 'ADMIN') {
       router.push('/');
     }

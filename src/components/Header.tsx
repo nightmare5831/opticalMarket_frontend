@@ -77,7 +77,7 @@ export default function Header() {
                 {/* Cart Icon - Only for customers */}
                 {user?.role === 'CUSTOMER' && (
                   <Link
-                    href="/cart"
+                    href="/buyer/cart"
                     className="relative p-2 text-gray-600 hover:text-blue-600 transition"
                     title="Shopping Cart"
                   >

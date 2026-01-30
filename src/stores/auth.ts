@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set({ user: null, token: null, loggingOut: true });
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          window.location.href = '/auth/login';
         }
       },
     }),

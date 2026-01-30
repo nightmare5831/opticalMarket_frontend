@@ -15,15 +15,15 @@ export const ADMIN_TABS: NavTab[] = [
 export const SELLER_TABS: NavTab[] = [
   { label: 'Dashboard', path: '/seller' },
   { label: 'My Listings', path: '/seller/products' },
-  { label: 'Categories', path: '/products/categories' },
+  { label: 'Categories', path: '/seller/categories' },
   { label: 'Orders', path: '/seller/orders' },
   { label: 'Profile', path: '/seller/profile' },
 ];
 
 // Customer/Buyer navigation tabs
 export const CUSTOMER_TABS: NavTab[] = [
-  { label: 'Products', path: '/products' },
-  { label: 'Orders', path: '/orders' },
+  { label: 'Products', path: '/buyer/products' },
+  { label: 'Orders', path: '/buyer/orders' },
 ];
 
 // Get navigation tabs based on user role and status

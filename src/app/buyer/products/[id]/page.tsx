@@ -65,7 +65,7 @@ export default function ProductDetailPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Product not found</h1>
           <button
-            onClick={() => router.push('/products')}
+            onClick={() => router.push('/buyer/products')}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Back to Products
@@ -100,7 +100,7 @@ export default function ProductDetailPage() {
       <ToastContainer />
       <div className="max-w-6xl mx-auto p-8">
         <button
-          onClick={() => router.push('/products')}
+          onClick={() => router.push('/buyer/products')}
           className="mb-6 text-blue-600 hover:text-blue-700"
         >
           ← Back to Products

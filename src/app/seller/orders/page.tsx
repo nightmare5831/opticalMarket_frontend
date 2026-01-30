@@ -57,7 +57,7 @@ export default function SellerOrdersPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
     if (user.role !== 'SELLER' && user.role !== 'ADMIN') {

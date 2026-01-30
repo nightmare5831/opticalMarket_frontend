@@ -31,7 +31,7 @@ export default function AdminPage() {
     if (loading) return; // Wait for auth to load
 
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
     } else if (user.role !== 'ADMIN') {
       router.push('/');
     }

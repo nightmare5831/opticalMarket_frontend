@@ -66,7 +66,7 @@ export default function SellerProductsPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
     if (user.role !== 'SELLER') {

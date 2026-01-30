@@ -39,7 +39,7 @@ export default function CategoriesPage() {
     if (!mounted) return;
 
     if (!token || (user?.role !== 'SELLER' && user?.role !== 'ADMIN')) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
 

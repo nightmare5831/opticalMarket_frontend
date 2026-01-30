@@ -20,10 +20,10 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (!user) {
-      router.push('/login?redirect=/cart');
+      router.push('/auth/login?redirect=/buyer/cart');
       return;
     }
-    router.push('/checkout');
+    router.push('/buyer/checkout');
   };
 
   if (!mounted) {
@@ -63,7 +63,7 @@ export default function CartPage() {
               Looks like you haven&apos;t added any items yet.
             </p>
             <Link
-              href="/products"
+              href="/buyer/products"
               className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Browse Products
@@ -104,7 +104,7 @@ export default function CartPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start gap-2">
                     <Link
-                      href={`/products/${item.productId}`}
+                      href={`/buyer/products/${item.productId}`}
                       className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1 text-sm"
                     >
                       {item.name}

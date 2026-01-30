@@ -72,7 +72,7 @@ export default function CheckoutAddressPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push('/login?redirect=/checkout');
+      router.push('/auth/login?redirect=/buyer/checkout');
       return;
     }
     fetchAddresses();
@@ -162,7 +162,7 @@ export default function CheckoutAddressPage() {
     }
     sessionStorage.setItem('checkout_address_id', selectedAddressId);
     sessionStorage.setItem('checkout_shipping', JSON.stringify(selectedShipping));
-    router.push('/checkout/payment');
+    router.push('/buyer/checkout/payment');
   };
 
   if (!mounted || loading) {
@@ -170,7 +170,7 @@ export default function CheckoutAddressPage() {
   }
 
   if (items.length === 0) {
-    router.push('/cart');
+    router.push('/buyer/cart');
     return null;
   }
 
