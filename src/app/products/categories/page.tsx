@@ -38,13 +38,8 @@ export default function CategoriesPage() {
   useEffect(() => {
     if (!mounted) return;
 
-    if (!token || user?.role !== 'SELLER') {
+    if (!token || (user?.role !== 'SELLER' && user?.role !== 'ADMIN')) {
       router.push('/login');
-      return;
-    }
-
-    if (user?.status === 'PENDING') {
-      router.push('/seller');
       return;
     }
 

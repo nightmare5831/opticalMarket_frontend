@@ -15,6 +15,7 @@ export const ADMIN_TABS: NavTab[] = [
 export const SELLER_TABS: NavTab[] = [
   { label: 'Dashboard', path: '/seller' },
   { label: 'My Listings', path: '/seller/products' },
+  { label: 'Categories', path: '/products/categories' },
   { label: 'Orders', path: '/seller/orders' },
   { label: 'Profile', path: '/seller/profile' },
 ];
