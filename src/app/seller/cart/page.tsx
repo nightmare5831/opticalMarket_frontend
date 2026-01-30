@@ -8,7 +8,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/Header';
 
-export default function CartPage() {
+export default function SellerCartPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore();
@@ -20,7 +20,7 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (!user) {
-      router.push('/auth/login?redirect=/buyer/cart');
+      router.push('/auth/login?redirect=/seller/cart');
       return;
     }
     router.push('/buyer/checkout');
@@ -63,10 +63,10 @@ export default function CartPage() {
               Looks like you haven&apos;t added any items yet.
             </p>
             <Link
-              href="/buyer/products"
+              href="/seller/shop"
               className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Browse Products
+              Browse B2B Products
             </Link>
           </div>
         ) : (
@@ -103,12 +103,9 @@ export default function CartPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start gap-2">
-                    <Link
-                      href={`/buyer/products/${item.productId}`}
-                      className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1 text-sm"
-                    >
+                    <span className="font-medium text-gray-900 line-clamp-1 text-sm">
                       {item.name}
-                    </Link>
+                    </span>
                     <button
                       onClick={() => removeItem(item.productId)}
                       className="text-gray-400 hover:text-red-500 flex-shrink-0"

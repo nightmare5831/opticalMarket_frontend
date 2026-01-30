@@ -17,7 +17,7 @@ export default function Header() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const navigationTabs = getNavigationTabs(user?.role, user?.status);
+  const navigationTabs = getNavigationTabs(user?.role, user?.status, user?.sellerType);
   const homePath = getHomePath(user?.role);
 
   useEffect(() => {

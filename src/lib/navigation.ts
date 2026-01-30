@@ -11,8 +11,8 @@ export const ADMIN_TABS: NavTab[] = [
   { label: 'Orders', path: '/admin/orders' },
 ];
 
-// Seller navigation tabs
-export const SELLER_TABS: NavTab[] = [
+// Seller navigation tabs (common)
+const SELLER_BASE_TABS: NavTab[] = [
   { label: 'Dashboard', path: '/seller' },
   { label: 'My Listings', path: '/seller/products' },
   { label: 'Categories', path: '/seller/categories' },
@@ -20,22 +20,35 @@ export const SELLER_TABS: NavTab[] = [
   { label: 'Profile', path: '/seller/profile' },
 ];
 
+// B2C seller gets additional tabs to browse B2B products and cart
+const SELLER_B2C_EXTRA_TABS: NavTab[] = [
+  { label: 'Shop', path: '/seller/shop' },
+  { label: 'Cart', path: '/seller/cart' },
+];
+
+export const SELLER_TABS = SELLER_BASE_TABS;
+
 // Customer/Buyer navigation tabs
 export const CUSTOMER_TABS: NavTab[] = [
   { label: 'Products', path: '/buyer/products' },
   { label: 'Orders', path: '/buyer/orders' },
 ];
 
-// Get navigation tabs based on user role and status
-export const getNavigationTabs = (role: string | undefined, status?: string): NavTab[] => {
+// Get navigation tabs based on user role, status, and sellerType
+export const getNavigationTabs = (role: string | undefined, status?: string, sellerType?: string): NavTab[] => {
   switch (role) {
     case 'ADMIN':
       return ADMIN_TABS;
-    case 'SELLER':
+    case 'SELLER': {
+      let tabs = [...SELLER_BASE_TABS];
       if (status === 'PENDING') {
-        return SELLER_TABS.filter(tab => tab.path !== '/seller/orders');
+        tabs = tabs.filter(tab => tab.path !== '/seller/orders');
       }
-      return SELLER_TABS;
+      if (sellerType === 'B2C_MERCHANT') {
+        tabs = [...tabs, ...SELLER_B2C_EXTRA_TABS];
+      }
+      return tabs;
+    }
     case 'CUSTOMER':
     default:
       return CUSTOMER_TABS;

@@ -27,7 +27,7 @@ interface Category {
   slug: string;
 }
 
-export default function ProductsPage() {
+export default function SellerShopPage() {
   const { user } = useAuthStore();
   const { addItem } = useCartStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -70,7 +70,7 @@ export default function ProductsPage() {
   const fetchAllProducts = async () => {
     setLoading(true);
     try {
-      const data = await Request.Get('/products?productType=B2C');
+      const data = await Request.Get('/products?productType=B2B');
       const products = Array.isArray(data) ? data : data?.data || [];
       setAllProducts(products);
     } catch (error) {
@@ -126,8 +126,8 @@ export default function ProductsPage() {
 
       <div className="mx-8 px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-          <p className="text-gray-600 mt-1">Browse all available products</p>
+          <h1 className="text-3xl font-bold text-gray-900">Shop B2B Products</h1>
+          <p className="text-gray-600 mt-1">Browse wholesale products from B2B suppliers</p>
         </div>
 
         {/* Filters */}
@@ -278,22 +278,20 @@ export default function ProductsPage() {
                       <p className="text-2xl font-bold text-blue-600">
                         R$ {parseFloat(product.price.toString()).toFixed(2)}
                       </p>
-                      {user?.role === 'CUSTOMER' && (
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          disabled={product.stock < 1}
-                          className={`p-2 rounded-lg transition ${
-                            product.stock < 1
-                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}
-                          title={product.stock < 1 ? 'Out of stock' : 'Add to cart'}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleAddToCart(product)}
+                        disabled={product.stock < 1}
+                        className={`p-2 rounded-lg transition ${
+                          product.stock < 1
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                        title={product.stock < 1 ? 'Out of stock' : 'Add to cart'}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -412,7 +410,7 @@ export default function ProductsPage() {
 
                     {selectedProduct.seller && (
                       <div className="flex items-center justify-between py-3 border-b">
-                        <span className="text-sm font-medium text-gray-600">Seller</span>
+                        <span className="text-sm font-medium text-gray-600">Supplier</span>
                         <span className="font-semibold text-gray-900">{selectedProduct.seller.name}</span>
                       </div>
                     )}
@@ -425,28 +423,26 @@ export default function ProductsPage() {
                     </div>
                   )}
 
-                  {/* Add to Cart Button for Customers */}
-                  {user?.role === 'CUSTOMER' && (
-                    <div className="mt-6 pt-4 border-t">
-                      <button
-                        onClick={() => {
-                          handleAddToCart(selectedProduct);
-                          setShowProductDetail(false);
-                        }}
-                        disabled={selectedProduct.stock < 1}
-                        className={`w-full py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
-                          selectedProduct.stock < 1
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {selectedProduct.stock < 1 ? 'Out of Stock' : 'Add to Cart'}
-                      </button>
-                    </div>
-                  )}
+                  {/* Add to Cart Button */}
+                  <div className="mt-6 pt-4 border-t">
+                    <button
+                      onClick={() => {
+                        handleAddToCart(selectedProduct);
+                        setShowProductDetail(false);
+                      }}
+                      disabled={selectedProduct.stock < 1}
+                      className={`w-full py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                        selectedProduct.stock < 1
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      {selectedProduct.stock < 1 ? 'Out of Stock' : 'Add to Cart'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
