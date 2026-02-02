@@ -85,6 +85,8 @@ export default function ProductDetailPage() {
       quantity,
       image: product.images[0],
       stock: product.stock,
+      category: product.category?.name,
+      sellerName: product.seller?.name,
     });
 
     toast.success(`${product.name} added to cart!`, toastConfig);

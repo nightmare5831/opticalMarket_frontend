@@ -44,7 +44,7 @@ export const getNavigationTabs = (role: string | undefined, status?: string, sel
       if (status === 'PENDING') {
         tabs = tabs.filter(tab => tab.path !== '/seller/orders');
       }
-      if (sellerType === 'B2C_MERCHANT') {
+      if (sellerType === 'B2C_MERCHANT' && status !== 'PENDING') {
         tabs = [...tabs, ...SELLER_B2C_EXTRA_TABS];
       }
       return tabs;
