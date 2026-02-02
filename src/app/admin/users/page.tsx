@@ -387,19 +387,25 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-6 py-4">
                         {u.status === 'PENDING' ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleUpdateStatus(u.id, 'ACTIVE')}
-                              className="px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                            >
-                              Active
-                            </button>
-                            <button
-                              onClick={() => handleUpdateStatus(u.id, 'SUSPENDED')}
-                              className="px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                            >
-                              Suspend
-                            </button>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleUpdateStatus(u.id, 'ACTIVE')}
+                                disabled={u.role === 'SELLER' && !u.mercadoPagoConnected}
+                                className="px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Active
+                              </button>
+                              <button
+                                onClick={() => handleUpdateStatus(u.id, 'SUSPENDED')}
+                                className="px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                              >
+                                Suspend
+                              </button>
+                            </div>
+                            {u.role === 'SELLER' && !u.mercadoPagoConnected && (
+                              <span className="text-xs text-red-500">MP required</span>
+                            )}
                           </div>
                         ) : (
                           <span className="text-xs text-gray-400">-</span>

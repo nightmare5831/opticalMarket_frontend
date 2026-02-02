@@ -34,6 +34,7 @@ interface Order {
   paymentStatus: string;
   paymentMethod: string;
   shippingMethod: string | null;
+  shippingType: 'PLATFORM' | 'SELLER';
   total: string;
   createdAt: string;
   items: OrderItem[];
@@ -426,6 +427,13 @@ export default function OrdersPage() {
                                 <p className={`font-semibold ${getShippingStatus(order.status).color}`}>
                                   {getShippingStatus(order.status).text}
                                 </p>
+                                <span className={`inline-flex mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${
+                                  order.shippingType === 'SELLER'
+                                    ? 'bg-orange-100 text-orange-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {order.shippingType === 'SELLER' ? 'Seller Shipping' : 'Platform Shipping'}
+                                </span>
                                 {order.shippingMethod && (
                                   <p className="text-sm text-gray-500 mt-1">
                                     Method: {order.shippingMethod}
