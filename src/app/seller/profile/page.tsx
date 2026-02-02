@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
 import Header from '@/components/Header';
@@ -11,12 +11,14 @@ import { toastConfig } from '@/lib/toast';
 
 export default function SellerProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading, setAuth, token } = useAuth();
   const [sellerType, setSellerType] = useState('');
   const [cnpj, setCnpj] = useState('');
   const [legalCompanyName, setLegalCompanyName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [mpLoading, setMpLoading] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -25,47 +27,71 @@ export default function SellerProfilePage() {
     } else if (user.role !== 'SELLER') {
       router.push('/');
     } else {
-      // Initialize form with user data
       setSellerType(user.sellerType || 'B2C_MERCHANT');
       setCnpj(user.cnpj || '');
       setLegalCompanyName(user.legalCompanyName || '');
     }
   }, [user, loading, router]);
 
+  // Handle OAuth callback result
+  useEffect(() => {
+    const mp = searchParams.get('mp');
+    if (mp === 'connected') {
+      toast.success('Mercado Pago connected successfully', toastConfig);
+      // Refresh user data
+      if (user && token) {
+        setAuth({ ...user, mercadoPagoConnected: true }, token);
+      }
+      router.replace('/seller/profile');
+    } else if (mp === 'error') {
+      toast.error('Failed to connect Mercado Pago', toastConfig);
+      router.replace('/seller/profile');
+    }
+  }, [searchParams]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await Request.Patch(`/admin/users/${user?.id}/business-info`, {
-        cnpj,
-        legalCompanyName,
-      });
-
-      // Update user context with new data
+      await Request.Patch(`/admin/users/${user?.id}/business-info`, { cnpj, legalCompanyName });
       if (user && token) {
         setAuth({ ...user, cnpj, legalCompanyName }, token);
       }
-
-      toast.success('Business information updated successfully', toastConfig);
+      toast.success('Business information updated', toastConfig);
       setIsEditing(false);
     } catch (error: any) {
-      console.error('Failed to update business info:', error);
-      toast.error(error.response?.data?.message || 'Failed to update business information', toastConfig);
+      toast.error(error.response?.data?.message || 'Failed to update', toastConfig);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCancel = () => {
-    // Reset to original values
-    setSellerType(user?.sellerType || 'B2C_MERCHANT');
-    setCnpj(user?.cnpj || '');
-    setLegalCompanyName(user?.legalCompanyName || '');
-    setIsEditing(false);
+  const handleConnectMP = async () => {
+    setMpLoading(true);
+    try {
+      const data = await Request.Get('/seller/mercadopago/oauth-url');
+      window.location.href = data.url;
+    } catch (error: any) {
+      toast.error('Failed to get Mercado Pago authorization URL', toastConfig);
+      setMpLoading(false);
+    }
   };
 
-  if (loading || !user || user.role !== 'SELLER') {
-    return null;
-  }
+  const handleDisconnectMP = async () => {
+    setMpLoading(true);
+    try {
+      await Request.Post('/seller/mercadopago/disconnect');
+      if (user && token) {
+        setAuth({ ...user, mercadoPagoConnected: false, mercadoPagoAccountId: undefined }, token);
+      }
+      toast.success('Mercado Pago disconnected', toastConfig);
+    } catch (error: any) {
+      toast.error('Failed to disconnect', toastConfig);
+    } finally {
+      setMpLoading(false);
+    }
+  };
+
+  if (loading || !user || user.role !== 'SELLER') return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -78,169 +104,82 @@ export default function SellerProfilePage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Seller Profile</h1>
             <p className="text-gray-600">Manage your business information and payment settings</p>
           </div>
-          <button
-            onClick={() => router.push('/seller')}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900"
-          >
+          <button onClick={() => router.push('/seller')} className="px-4 py-2 text-gray-600 hover:text-gray-900">
             Back to Dashboard
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Account Information */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Account Information */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Account Information</h2>
                 {!isEditing && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-lg hover:bg-blue-50"
-                  >
+                  <button onClick={() => setIsEditing(true)} className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-lg hover:bg-blue-50">
                     Edit
                   </button>
                 )}
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                  <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900">
-                    {user.name}
-                  </div>
+                  <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900">{user.name}</div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900">
-                    {user.email}
-                  </div>
+                  <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900">{user.email}</div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Account Status</label>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                      user.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {user.status}
-                    </span>
-                    {user.status === 'PENDING' && (
-                      <span className="text-xs text-gray-500">Waiting for admin approval</span>
-                    )}
-                  </div>
+                  <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                    user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                    user.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {user.status}
+                  </span>
                 </div>
               </div>
             </div>
 
+            {/* Business Information */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Business Information</h2>
-
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Seller Type
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Seller Type</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className={`p-4 border-2 rounded-lg ${
-                      sellerType === 'B2C_MERCHANT'
-                        ? 'border-cyan-500 bg-cyan-50'
-                        : 'border-gray-200 bg-gray-50'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                          sellerType === 'B2C_MERCHANT' ? 'border-cyan-500' : 'border-gray-300'
-                        }`}>
-                          {sellerType === 'B2C_MERCHANT' && (
-                            <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">B2C Merchant</div>
-                          <div className="text-xs text-gray-500">Retail seller</div>
-                        </div>
-                      </div>
+                    <div className={`p-4 border-2 rounded-lg ${sellerType === 'B2C_MERCHANT' ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200 bg-gray-50'}`}>
+                      <div className="font-medium text-gray-900">B2C Merchant</div>
+                      <div className="text-xs text-gray-500">Retail seller</div>
                     </div>
-                    <div className={`p-4 border-2 rounded-lg ${
-                      sellerType === 'B2B_SUPPLIER'
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-gray-200 bg-gray-50'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                          sellerType === 'B2B_SUPPLIER' ? 'border-indigo-500' : 'border-gray-300'
-                        }`}>
-                          {sellerType === 'B2B_SUPPLIER' && (
-                            <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">B2B Supplier</div>
-                          <div className="text-xs text-gray-500">Wholesale supplier</div>
-                        </div>
-                      </div>
+                    <div className={`p-4 border-2 rounded-lg ${sellerType === 'B2B_SUPPLIER' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-gray-50'}`}>
+                      <div className="font-medium text-gray-900">B2B Supplier</div>
+                      <div className="text-xs text-gray-500">Wholesale supplier</div>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Seller type is set during registration and cannot be changed
-                  </p>
                 </div>
-
                 <div>
-                  <label htmlFor="legalCompanyName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Legal Company Name
-                  </label>
-                  <input
-                    id="legalCompanyName"
-                    type="text"
-                    value={legalCompanyName}
-                    onChange={(e) => setLegalCompanyName(e.target.value)}
-                    disabled={!isEditing}
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isEditing
-                        ? 'border-gray-300 bg-white text-gray-900'
-                        : 'border-gray-300 bg-gray-50 text-gray-600 cursor-not-allowed'
-                    }`}
-                    placeholder="Your company's legal name"
-                  />
+                  <label htmlFor="legalCompanyName" className="block text-sm font-medium text-gray-700 mb-1">Legal Company Name</label>
+                  <input id="legalCompanyName" type="text" value={legalCompanyName} onChange={(e) => setLegalCompanyName(e.target.value)} disabled={!isEditing}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isEditing ? 'border-gray-300 bg-white text-gray-900' : 'border-gray-300 bg-gray-50 text-gray-600 cursor-not-allowed'}`}
+                    placeholder="Your company's legal name" />
                 </div>
-
                 <div>
-                  <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700 mb-1">
-                    CNPJ
-                  </label>
-                  <input
-                    id="cnpj"
-                    type="text"
-                    value={cnpj}
-                    onChange={(e) => setCnpj(e.target.value)}
-                    disabled={!isEditing}
-                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isEditing
-                        ? 'border-gray-300 bg-white text-gray-900'
-                        : 'border-gray-300 bg-gray-50 text-gray-600 cursor-not-allowed'
-                    }`}
-                    placeholder="00.000.000/0000-00"
-                  />
+                  <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
+                  <input id="cnpj" type="text" value={cnpj} onChange={(e) => setCnpj(e.target.value)} disabled={!isEditing}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isEditing ? 'border-gray-300 bg-white text-gray-900' : 'border-gray-300 bg-gray-50 text-gray-600 cursor-not-allowed'}`}
+                    placeholder="00.000.000/0000-00" />
                 </div>
               </div>
-
               {isEditing && (
                 <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
+                  <button onClick={handleSave} disabled={saving} className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
                     {saving ? 'Saving...' : 'Save Changes'}
                   </button>
-                  <button
-                    onClick={handleCancel}
-                    disabled={saving}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  >
+                  <button onClick={() => { setIsEditing(false); setCnpj(user.cnpj || ''); setLegalCompanyName(user.legalCompanyName || ''); }} disabled={saving}
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     Cancel
                   </button>
                 </div>
@@ -252,7 +191,6 @@ export default function SellerProfilePage() {
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Settings</h2>
-
               <div className="space-y-4">
                 <div className="p-4 rounded-lg border-2 border-gray-200 bg-gray-50">
                   <div className="flex items-center gap-3 mb-3">
@@ -276,13 +214,10 @@ export default function SellerProfilePage() {
                         </svg>
                         <span className="font-medium">Connected</span>
                       </div>
-                      <p className="text-xs text-gray-600">
-                        Your Mercado Pago account is connected and ready to receive payments.
-                      </p>
-                      <button
-                        className="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-lg hover:bg-red-50"
-                      >
-                        Disconnect
+                      <p className="text-xs text-gray-600">Your Mercado Pago account is connected and ready to receive payments.</p>
+                      <button onClick={handleDisconnectMP} disabled={mpLoading}
+                        className="w-full px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50">
+                        {mpLoading ? 'Disconnecting...' : 'Disconnect'}
                       </button>
                     </div>
                   ) : (
@@ -293,13 +228,10 @@ export default function SellerProfilePage() {
                         </svg>
                         <span className="font-medium">Not Connected</span>
                       </div>
-                      <p className="text-xs text-gray-600">
-                        Connect your Mercado Pago account to start receiving payments from customers.
-                      </p>
-                      <button
-                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                      >
-                        Connect Mercado Pago
+                      <p className="text-xs text-gray-600">Connect your Mercado Pago account to start receiving payments from customers.</p>
+                      <button onClick={handleConnectMP} disabled={mpLoading}
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                        {mpLoading ? 'Redirecting...' : 'Connect Mercado Pago'}
                       </button>
                     </div>
                   )}
@@ -315,8 +247,7 @@ export default function SellerProfilePage() {
                       <ul className="space-y-1 list-disc list-inside">
                         <li>Receive payments directly</li>
                         <li>Secure payment processing</li>
-                        <li>Multiple payment methods</li>
-                        <li>Automatic transaction handling</li>
+                        <li>Required before admin approval</li>
                       </ul>
                     </div>
                   </div>
