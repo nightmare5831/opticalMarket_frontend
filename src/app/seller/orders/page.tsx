@@ -312,6 +312,13 @@ export default function SellerOrdersPage() {
                     >
                       {order.status}
                     </span>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(
+                        order.paymentStatus
+                      )}`}
+                    >
+                      Payment: {order.paymentStatus}
+                    </span>
                     <span className="font-medium text-blue-600">
                       R$ {parseFloat(order.total).toFixed(2)}
                     </span>

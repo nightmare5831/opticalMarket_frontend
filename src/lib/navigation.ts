@@ -20,10 +20,11 @@ const SELLER_BASE_TABS: NavTab[] = [
   { label: 'Profile', path: '/seller/profile' },
 ];
 
-// B2C seller gets additional tabs to browse B2B products and cart
+// B2C seller gets additional tabs to browse B2B products, cart, and purchases
 const SELLER_B2C_EXTRA_TABS: NavTab[] = [
   { label: 'Shop', path: '/seller/shop' },
   { label: 'Cart', path: '/seller/cart' },
+  { label: 'My Purchases', path: '/seller/purchases' },
 ];
 
 export const SELLER_TABS = SELLER_BASE_TABS;

@@ -42,6 +42,20 @@ export default function CheckoutPaymentPage() {
 
     setProcessing(true);
     try {
+      // Validate all sellers have Mercado Pago connected
+      const validation = await Request.Post('/payment/validate-sellers', {
+        productIds: items.map((item) => item.productId),
+      });
+      if (!validation.valid) {
+        const sellerNames = validation.disconnectedSellers.map((s: any) => s.sellerName).join(', ');
+        toast.error(
+          `Cannot proceed: seller(s) ${sellerNames} have not connected their Mercado Pago account. Please remove their products from your cart.`,
+          { ...toastConfig, autoClose: 8000 }
+        );
+        setProcessing(false);
+        return;
+      }
+
       const storedShippingType = sessionStorage.getItem('checkout_shipping_type') as 'PLATFORM' | 'SELLER';
       const shippingData = sessionStorage.getItem('checkout_shipping');
       const shippingInfo = shippingData ? JSON.parse(shippingData) : null;
