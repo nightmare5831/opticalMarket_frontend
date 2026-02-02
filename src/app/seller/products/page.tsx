@@ -66,7 +66,7 @@ export default function SellerProductsPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
     if (user.role !== 'SELLER') {
@@ -319,7 +319,7 @@ export default function SellerProductsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
             {filteredProducts.map((product) => {
               const badge = getStatusBadge(product);
               const canSubmit = user.status === 'ACTIVE' && product.status === 'PENDING' && !product.isSubmittedForApproval;
@@ -374,11 +374,14 @@ export default function SellerProductsPage() {
 
                   {/* Info */}
                   <div className="p-4">
-                    <span className="inline-block px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full mb-2">
-                      {product.category?.name || 'Uncategorized'}
-                    </span>
-                    <h3 className="font-semibold text-sm mb-1 truncate text-gray-900">{product.name}</h3>
-                    <p className="text-xs text-gray-500 mb-3">SKU: {product.sku}</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-sm truncate text-gray-900">{product.name}</h3>
+                      <span className="ml-2 shrink-0 px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
+                        {product.category?.name || 'Uncategorized'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-1">{product.sku}</p>
+                    <p className="text-xs text-gray-500 mb-3">Stock: {product.stock}</p>
                     <div className="flex items-center justify-between">
                       <p className="text-lg font-bold text-blue-600">
                         R$ {parseFloat(product.price.toString()).toFixed(2)}

@@ -8,6 +8,8 @@ export interface CartItem {
   quantity: number;
   image?: string;
   stock: number;
+  category?: string;
+  sellerName?: string;
 }
 
 interface CartState {
@@ -51,6 +53,8 @@ export const useCartStore = create<CartState>()(
                 quantity: item.quantity || 1,
                 image: item.image,
                 stock: item.stock,
+                category: item.category,
+                sellerName: item.sellerName,
               },
             ],
           });

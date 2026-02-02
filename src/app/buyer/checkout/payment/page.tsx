@@ -26,14 +26,14 @@ export default function CheckoutPaymentPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push('/login?redirect=/checkout');
+      router.push('/auth/login?redirect=/buyer/checkout');
       return;
     }
 
     const addressId = sessionStorage.getItem('checkout_address_id');
     const shippingData = sessionStorage.getItem('checkout_shipping');
     if (!addressId || !shippingData) {
-      router.push('/checkout');
+      router.push('/buyer/checkout');
       return;
     }
     setShipping(JSON.parse(shippingData));
@@ -43,7 +43,7 @@ export default function CheckoutPaymentPage() {
     const addressId = sessionStorage.getItem('checkout_address_id');
     if (!addressId) {
       toast.error('Please select a delivery address', toastConfig);
-      router.push('/checkout');
+      router.push('/buyer/checkout');
       return;
     }
 
@@ -89,7 +89,7 @@ export default function CheckoutPaymentPage() {
   }
 
   if (items.length === 0) {
-    router.push('/cart');
+    router.push('/buyer/cart');
     return null;
   }
 
@@ -156,7 +156,7 @@ export default function CheckoutPaymentPage() {
 
               <div className="flex gap-3">
                 <Link
-                  href="/checkout"
+                  href="/buyer/checkout"
                   className="flex-1 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-center"
                 >
                   Back

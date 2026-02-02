@@ -53,7 +53,7 @@ export default function RegisterPage() {
 
       toast.success(message, toastConfig);
       setTimeout(() => {
-        router.push('/login');
+        router.push('/auth/login');
       }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -287,7 +287,7 @@ export default function RegisterPage() {
 
           <div className="text-center text-sm">
             <span className="text-gray-600">Already have an account? </span>
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
               Sign in
             </Link>
           </div>

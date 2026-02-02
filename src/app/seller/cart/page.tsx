@@ -8,7 +8,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/Header';
 
-export default function CartPage() {
+export default function SellerCartPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore();
@@ -20,10 +20,10 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (!user) {
-      router.push('/login?redirect=/cart');
+      router.push('/auth/login?redirect=/seller/cart');
       return;
     }
-    router.push('/checkout');
+    router.push('/buyer/checkout');
   };
 
   if (!mounted) {
@@ -63,10 +63,10 @@ export default function CartPage() {
               Looks like you haven&apos;t added any items yet.
             </p>
             <Link
-              href="/products"
+              href="/seller/shop"
               className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Browse Products
+              Browse B2B Products
             </Link>
           </div>
         ) : (
@@ -103,12 +103,9 @@ export default function CartPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start gap-2">
-                    <Link
-                      href={`/products/${item.productId}`}
-                      className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1 text-sm"
-                    >
+                    <span className="font-medium text-gray-900 line-clamp-1 text-sm">
                       {item.name}
-                    </Link>
+                    </span>
                     <button
                       onClick={() => removeItem(item.productId)}
                       className="text-gray-400 hover:text-red-500 flex-shrink-0"
@@ -127,6 +124,17 @@ export default function CartPage() {
                         />
                       </svg>
                     </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {item.category && (
+                      <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                        {item.category}
+                      </span>
+                    )}
+                    {item.sellerName && (
+                      <span className="text-xs text-gray-500">{item.sellerName}</span>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between mt-1">
@@ -153,6 +161,12 @@ export default function CartPage() {
                         +
                       </button>
                     </div>
+                  </div>
+
+                  <div className="text-right mt-1">
+                    <span className="text-xs font-semibold text-gray-700">
+                      Subtotal: R$ {(parseFloat(item.price.toString()) * item.quantity).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
