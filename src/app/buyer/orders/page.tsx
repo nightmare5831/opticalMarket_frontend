@@ -58,6 +58,12 @@ export default function OrdersPage() {
       router.push('/auth/login');
       return;
     }
+    // Redirect B2C merchants to their purchases page
+    if (user.role === 'SELLER') {
+      const params = window.location.search;
+      router.replace(`/seller/purchases${params}`);
+      return;
+    }
     fetchOrders();
   }, [user, loading, router]);
 
