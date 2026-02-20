@@ -124,9 +124,12 @@ export default function SellerDashboardPage() {
             <h3 className="text-sm font-medium text-gray-500">Seller Type</h3>
             <div className="mt-3">
               <span className={`px-3 py-1.5 text-sm font-medium rounded-full ${
-                user.sellerType === 'B2C_MERCHANT' ? 'bg-cyan-100 text-cyan-800' : 'bg-indigo-100 text-indigo-800'
+                user.sellerType === 'B2C_MERCHANT' ? 'bg-cyan-100 text-cyan-800' :
+                user.sellerType === 'FULL_SERVICE' ? 'bg-purple-100 text-purple-800' :
+                'bg-indigo-100 text-indigo-800'
               }`}>
-                {user.sellerType === 'B2C_MERCHANT' ? 'B2C Merchant' : 'B2B Supplier'}
+                {user.sellerType === 'B2C_MERCHANT' ? 'B2C Merchant' :
+                 user.sellerType === 'FULL_SERVICE' ? 'Full-Service' : 'B2B Supplier'}
               </span>
             </div>
           </div>
@@ -148,6 +151,28 @@ export default function SellerDashboardPage() {
             </p>
           </div>
         </div>
+
+        {/* Commission Info for Full-Service Sellers */}
+        {user.sellerType === 'FULL_SERVICE' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Commission Overview</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm text-gray-500">Your Commission Rate</p>
+                <p className="mt-1 text-3xl font-bold text-green-600">
+                  {user.commissionRate != null ? `${user.commissionRate}%` : 'Not set'}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Set by the platform administrator</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">How it works</p>
+                <p className="text-sm text-gray-700 mt-1">
+                  The platform manages your products and fulfillment. You earn a commission on every sale made through your catalog.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* MP Connection & Business Info */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -224,27 +249,31 @@ export default function SellerDashboardPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => router.push('/seller/products')}
-              className="px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 text-left border border-blue-100 transition"
-            >
-              <div className="font-medium">My Listings</div>
-              <div className="text-sm text-blue-600">Manage your products</div>
-            </button>
-            <button
-              onClick={() => router.push('/seller/orders')}
-              disabled={isPending}
-              className={`px-4 py-3 rounded-lg text-left border transition ${
-                isPending
-                  ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
-                  : 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
-              }`}
-            >
-              <div className="font-medium">View Orders</div>
-              <div className={`text-sm ${isPending ? 'text-gray-400' : 'text-green-600'}`}>
-                {isPending ? 'Available after approval' : 'Manage customer orders'}
-              </div>
-            </button>
+            {user.sellerType !== 'FULL_SERVICE' && (
+              <button
+                onClick={() => router.push('/seller/products')}
+                className="px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 text-left border border-blue-100 transition"
+              >
+                <div className="font-medium">My Listings</div>
+                <div className="text-sm text-blue-600">Manage your products</div>
+              </button>
+            )}
+            {user.sellerType !== 'FULL_SERVICE' && (
+              <button
+                onClick={() => router.push('/seller/orders')}
+                disabled={isPending}
+                className={`px-4 py-3 rounded-lg text-left border transition ${
+                  isPending
+                    ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
+                    : 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
+                }`}
+              >
+                <div className="font-medium">View Orders</div>
+                <div className={`text-sm ${isPending ? 'text-gray-400' : 'text-green-600'}`}>
+                  {isPending ? 'Available after approval' : 'Manage customer orders'}
+                </div>
+              </button>
+            )}
             <button
               onClick={() => router.push('/seller/profile')}
               className="px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 text-left border border-purple-100 transition"

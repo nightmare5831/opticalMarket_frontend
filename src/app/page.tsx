@@ -50,6 +50,8 @@ export default function Home() {
       router.push('/admin');
     } else if (user.role === 'SELLER') {
       router.push('/seller');
+    } else if (user.role === 'PLATFORM_USER') {
+      router.push('/platform');
     } else {
       fetchDashboardData();
     }

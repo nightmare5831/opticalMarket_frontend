@@ -149,7 +149,7 @@ export default function SellerProfilePage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Seller Type</label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div className={`p-4 border-2 rounded-lg ${sellerType === 'B2C_MERCHANT' ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200 bg-gray-50'}`}>
                       <div className="font-medium text-gray-900">B2C Merchant</div>
                       <div className="text-xs text-gray-500">Retail seller</div>
@@ -158,8 +158,21 @@ export default function SellerProfilePage() {
                       <div className="font-medium text-gray-900">B2B Supplier</div>
                       <div className="text-xs text-gray-500">Wholesale supplier</div>
                     </div>
+                    <div className={`p-4 border-2 rounded-lg ${sellerType === 'FULL_SERVICE' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+                      <div className="font-medium text-gray-900">Full-Service</div>
+                      <div className="text-xs text-gray-500">Commission-based</div>
+                    </div>
                   </div>
                 </div>
+                {user.sellerType === 'FULL_SERVICE' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Commission Rate</label>
+                    <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900">
+                      {user.commissionRate != null ? `${user.commissionRate}%` : 'Not set by platform'}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Commission rate is managed by the platform administrator</p>
+                  </div>
+                )}
                 <div>
                   <label htmlFor="legalCompanyName" className="block text-sm font-medium text-gray-700 mb-1">Legal Company Name</label>
                   <input id="legalCompanyName" type="text" value={legalCompanyName} onChange={(e) => setLegalCompanyName(e.target.value)} disabled={!isEditing}
