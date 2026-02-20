@@ -11,12 +11,26 @@ export const ADMIN_TABS: NavTab[] = [
   { label: 'Orders', path: '/admin/orders' },
 ];
 
+// Platform User navigation tabs
+export const PLATFORM_USER_TABS: NavTab[] = [
+  { label: 'Dashboard', path: '/platform' },
+  { label: 'Products', path: '/platform/products' },
+  { label: 'Collections', path: '/platform/collections' },
+  { label: 'Sellers', path: '/platform/sellers' },
+];
+
 // Seller navigation tabs (common)
 const SELLER_BASE_TABS: NavTab[] = [
   { label: 'Dashboard', path: '/seller' },
   { label: 'My Listings', path: '/seller/products' },
   { label: 'Categories', path: '/seller/categories' },
   { label: 'Orders', path: '/seller/orders' },
+  { label: 'Profile', path: '/seller/profile' },
+];
+
+// Full-Service seller: read-only dashboard only
+const FULL_SERVICE_TABS: NavTab[] = [
+  { label: 'Dashboard', path: '/seller' },
   { label: 'Profile', path: '/seller/profile' },
 ];
 
@@ -40,7 +54,12 @@ export const getNavigationTabs = (role: string | undefined, status?: string, sel
   switch (role) {
     case 'ADMIN':
       return ADMIN_TABS;
+    case 'PLATFORM_USER':
+      return PLATFORM_USER_TABS;
     case 'SELLER': {
+      if (sellerType === 'FULL_SERVICE') {
+        return FULL_SERVICE_TABS;
+      }
       let tabs = [...SELLER_BASE_TABS];
       if (status === 'PENDING') {
         tabs = tabs.filter(tab => tab.path !== '/seller/orders');
@@ -61,6 +80,8 @@ export const getHomePath = (role: string | undefined): string => {
   switch (role) {
     case 'ADMIN':
       return '/admin';
+    case 'PLATFORM_USER':
+      return '/platform';
     case 'SELLER':
       return '/seller';
     case 'CUSTOMER':

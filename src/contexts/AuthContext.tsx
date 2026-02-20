@@ -7,13 +7,14 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
+  role: 'CUSTOMER' | 'SELLER' | 'ADMIN' | 'PLATFORM_USER';
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
-  sellerType?: 'B2C_MERCHANT' | 'B2B_SUPPLIER';
+  sellerType?: 'B2C_MERCHANT' | 'B2B_SUPPLIER' | 'FULL_SERVICE';
   cnpj?: string;
   legalCompanyName?: string;
   mercadoPagoConnected?: boolean;
   mercadoPagoAccountId?: string;
+  commissionRate?: number | null;
 }
 
 interface AuthContextType {

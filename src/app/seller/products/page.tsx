@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header';
-import BlingConnectionModal from '@/components/BlingConnectionModal';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -41,11 +40,6 @@ export default function SellerProductsPage() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
 
-  // Bling
-  const [blingConnected, setBlingConnected] = useState(false);
-  const [checkingBling, setCheckingBling] = useState(false);
-  const [showBlingModal, setShowBlingModal] = useState(false);
-
   // Add/Edit modal
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -60,6 +54,11 @@ export default function SellerProductsPage() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
 
+  // CSV import
+  const [showCsvModal, setShowCsvModal] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvLoading, setCsvLoading] = useState(false);
+
   // Filter
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
@@ -73,32 +72,9 @@ export default function SellerProductsPage() {
       router.push('/');
       return;
     }
-    initialize();
-  }, [user, loading, router]);
-
-  const initialize = async () => {
-    await checkBlingConnection();
     fetchCategories();
     fetchProducts();
-  };
-
-  const checkBlingConnection = async (): Promise<boolean> => {
-    if (!token) return false;
-    setCheckingBling(true);
-    try {
-      const response = await axios.get(`${API_URL}/bling/status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const isConnected = response.data.configured && response.data.connected;
-      setBlingConnected(isConnected);
-      return isConnected;
-    } catch (error) {
-      setBlingConnected(false);
-      return false;
-    } finally {
-      setCheckingBling(false);
-    }
-  };
+  }, [user, loading, router]);
 
   const fetchCategories = async () => {
     try {
@@ -141,6 +117,25 @@ export default function SellerProductsPage() {
     } finally {
       setSubmitting(null);
     }
+  };
+
+  const handleCsvImport = async () => {
+    if (!csvFile) { toast.error('Select a CSV file', toastConfig); return; }
+    setCsvLoading(true);
+    try {
+      const payload = new FormData();
+      payload.append('file', csvFile);
+      const res = await axios.post(`${API_URL}/products/csv-import`, payload, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+      });
+      const { success, errors } = res.data;
+      toast.success(`Imported ${success} product(s)${errors.length ? `, ${errors.length} error(s)` : ''}`, toastConfig);
+      setShowCsvModal(false);
+      setCsvFile(null);
+      fetchProducts();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'CSV import failed', toastConfig);
+    } finally { setCsvLoading(false); }
   };
 
   const openEditModal = (product: Product) => {
@@ -245,43 +240,18 @@ export default function SellerProductsPage() {
             <h1 className="text-3xl font-bold text-gray-900">My Listings</h1>
             <p className="text-gray-600 mt-1">Manage your products</p>
           </div>
-          <button
-            onClick={() => {
-              if (!blingConnected) {
-                setShowBlingModal(true);
-                return;
-              }
-              setShowModal(true);
-            }}
-            disabled={checkingBling}
-            className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
-              blingConnected && !checkingBling
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            title={!blingConnected ? 'Connect Bling ERP first' : 'Add Product'}
-          >
-            {checkingBling ? 'Checking...' : '+ Add Product'}
-          </button>
-        </div>
-
-        {/* Bling not connected warning */}
-        {!checkingBling && !blingConnected && (
-          <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-orange-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
-              </svg>
-              <span className="text-sm text-orange-800">Bling ERP not connected. Connect to add new products.</span>
-            </div>
+          <div className="flex gap-3">
+            <button onClick={() => setShowCsvModal(true)} className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition">
+              CSV Import
+            </button>
             <button
-              onClick={() => setShowBlingModal(true)}
-              className="px-3 py-1.5 text-sm font-medium text-orange-700 border border-orange-300 rounded-lg hover:bg-orange-100 transition"
+              onClick={() => setShowModal(true)}
+              className="px-4 py-2 rounded-lg transition text-sm font-medium bg-green-600 text-white hover:bg-green-700"
             >
-              Connect Bling
+              + Add Product
             </button>
           </div>
-        )}
+        </div>
 
         {/* Status Filter */}
         <div className="flex gap-2 mb-6">
@@ -306,7 +276,7 @@ export default function SellerProductsPage() {
         </div>
 
         {/* Products */}
-        {loadingProducts || checkingBling ? (
+        {loadingProducts ? (
           <div className="text-center py-20">
             <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
             <p className="mt-4 text-gray-600 font-medium">Loading products...</p>
@@ -466,8 +436,30 @@ export default function SellerProductsPage() {
         </div>
       )}
 
-      {/* Bling Connection Modal */}
-      <BlingConnectionModal isOpen={showBlingModal} onClose={() => setShowBlingModal(false)} />
+      {/* CSV Import Modal */}
+      {showCsvModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full shadow-xl">
+            <div className="border-b p-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900">CSV Import</h2>
+              <button onClick={() => setShowCsvModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">CSV File *</label>
+                <input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} className="w-full p-2 border rounded" />
+                <p className="text-xs text-gray-500 mt-1">Columns: sku, name, description, price, stock, categoryId, images (URLs separated by ;)</p>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={handleCsvImport} disabled={csvLoading || !csvFile} className="flex-1 bg-purple-600 text-white py-2 rounded hover:bg-purple-700 disabled:bg-gray-400">
+                  {csvLoading ? 'Importing...' : 'Import'}
+                </button>
+                <button onClick={() => setShowCsvModal(false)} className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

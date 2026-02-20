@@ -26,8 +26,6 @@ export default function CategoriesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', slug: '' });
-  const [blingConnected, setBlingConnected] = useState(false);
-  const [checkingBling, setCheckingBling] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,47 +41,8 @@ export default function CategoriesPage() {
       return;
     }
 
-    const initialize = async () => {
-      const isConnected = await checkBlingConnection();
-      if (!isConnected) {
-        setLoading(false);
-        return;
-      }
-      fetchCategories();
-    };
-
-    initialize();
+    fetchCategories();
   }, [token, user, mounted]);
-
-  const checkBlingConnection = async (): Promise<boolean> => {
-    if (!token) return false;
-
-    setCheckingBling(true);
-    try {
-      const response = await axios.get(`${API_URL}/bling/status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const isConnected = response.data.configured && response.data.connected;
-      setBlingConnected(isConnected);
-
-      if (!isConnected) {
-        toast.error('Bling connection required', toastConfig);
-      }
-
-      return isConnected;
-    } catch (error) {
-      console.error('Error checking Bling connection:', error);
-      setBlingConnected(false);
-      toast.error(
-        'Failed to check Bling connection. Please try again.',
-        toastConfig
-      );
-      return false;
-    } finally {
-      setCheckingBling(false);
-    }
-  };
 
   const fetchCategories = async () => {
     try {
@@ -160,7 +119,7 @@ export default function CategoriesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="mb-4 sm:mb-0">
             <h1 className="text-3xl font-bold text-gray-900">Category Management</h1>
-            <p className="text-gray-600 mt-1">Manage your product categories and sync with Bling ERP</p>
+            <p className="text-gray-600 mt-1">Manage your product categories</p>
           </div>
           <button
             onClick={() => {
@@ -169,15 +128,9 @@ export default function CategoriesPage() {
               setFormData({ name: '', slug: '' });
               setSubmitting(false);
             }}
-            disabled={!blingConnected || checkingBling}
-            className={`px-4 py-2 rounded-lg transition text-sm font-medium ${
-              blingConnected && !checkingBling
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            title={!blingConnected ? 'Connect Bling ERP to add categories' : 'Add Category'}
+            className="px-4 py-2 rounded-lg transition text-sm font-medium bg-green-600 text-white hover:bg-green-700"
           >
-            {checkingBling ? 'Checking...' : showForm ? 'Cancel' : '+ Add Category'}
+            {showForm ? 'Cancel' : '+ Add Category'}
           </button>
         </div>
 
@@ -265,18 +218,10 @@ export default function CategoriesPage() {
         )}
 
         {/* Categories List */}
-        {loading || checkingBling ? (
+        {loading ? (
           <div className="text-center py-20">
             <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600 font-medium">
-              {checkingBling ? 'Checking Bling connection...' : 'Loading categories...'}
-            </p>
-          </div>
-        ) : !blingConnected ? (
-          <div className="text-center py-24 bg-white rounded-xl border-2 border-dashed border-orange-300">
-            <div className="text-7xl mb-4">⚠️</div>
-            <p className="text-gray-900 text-xl font-semibold mb-2">Bling ERP Not Connected</p>
-            <p className="text-gray-600">Connect your Bling account to manage categories.</p>
+            <p className="mt-4 text-gray-600 font-medium">Loading categories...</p>
           </div>
         ) : categories.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-xl border-2 border-dashed border-gray-300">

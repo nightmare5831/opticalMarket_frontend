@@ -193,7 +193,7 @@ export default function RegisterPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Seller Type
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <button
                       type="button"
                       onClick={() => setSellerType('B2C_MERCHANT')}
@@ -217,6 +217,18 @@ export default function RegisterPage() {
                     >
                       B2B Supplier
                       <span className="block text-xs font-normal mt-1 opacity-75">Wholesale supplier</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSellerType('FULL_SERVICE')}
+                      className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+                        sellerType === 'FULL_SERVICE'
+                          ? 'border-blue-600 bg-blue-100 text-blue-900'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      Full-Service
+                      <span className="block text-xs font-normal mt-1 opacity-75">Commission-based</span>
                     </button>
                   </div>
                 </div>
