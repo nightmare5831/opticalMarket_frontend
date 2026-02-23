@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,7 +41,7 @@ interface Order {
   address: Address;
 }
 
-export default function OrdersPage() {
+function OrdersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
@@ -540,5 +540,13 @@ export default function OrdersPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function OrdersPageWrapper() {
+  return (
+    <Suspense>
+      <OrdersPage />
+    </Suspense>
   );
 }

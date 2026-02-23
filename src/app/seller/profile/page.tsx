@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
@@ -9,7 +9,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { toastConfig } from '@/lib/toast';
 
-export default function SellerProfilePage() {
+function SellerProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading, setAuth, token } = useAuth();
@@ -271,5 +271,13 @@ export default function SellerProfilePage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SellerProfilePageWrapper() {
+  return (
+    <Suspense>
+      <SellerProfilePage />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header';
@@ -42,7 +42,7 @@ interface Order {
   address: Address;
 }
 
-export default function SellerPurchasesPage() {
+function SellerPurchasesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
@@ -320,5 +320,13 @@ export default function SellerPurchasesPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SellerPurchasesPageWrapper() {
+  return (
+    <Suspense>
+      <SellerPurchasesPage />
+    </Suspense>
   );
 }
