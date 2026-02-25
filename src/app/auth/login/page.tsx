@@ -17,7 +17,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,9 +29,6 @@ export default function LoginPage() {
       setAuth(data.user, data.token);
       setAuthStore(data.user, data.token);
 
-      // Show full-screen spinner during redirect
-      setRedirecting(true);
-
       // Redirect based on role
       router.push(getHomePath(data.user.role));
     } catch (err: any) {
@@ -42,15 +38,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative">
-      {redirecting && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-3 text-white font-medium">Redirecting...</p>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8 border-2 border-gray-300 rounded-xl p-8 bg-white shadow-lg">
         <div className="flex flex-col items-center">
           <div className="relative w-48 h-48">

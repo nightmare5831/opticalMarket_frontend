@@ -15,7 +15,7 @@ interface User {
   name: string;
   role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
-  sellerType?: 'B2C_MERCHANT' | 'B2B_SUPPLIER';
+  sellerType?: 'B2C_MERCHANT' | 'B2B_SUPPLIER' | 'FULL_SERVICE';
   cnpj?: string;
   legalCompanyName?: string;
   mercadoPagoConnected?: boolean;
@@ -141,12 +141,18 @@ export default function AdminUsersPage() {
     const styles: Record<string, string> = {
       B2C_MERCHANT: 'bg-cyan-100 text-cyan-800',
       B2B_SUPPLIER: 'bg-indigo-100 text-indigo-800',
+      FULL_SERVICE: 'bg-purple-100 text-purple-800',
     };
     return styles[sellerType] || 'bg-gray-100 text-gray-800';
   };
 
   const getSellerTypeLabel = (sellerType: string) => {
-    return sellerType === 'B2C_MERCHANT' ? 'B2C' : 'B2B';
+    const labels: Record<string, string> = {
+      B2C_MERCHANT: 'B2C',
+      B2B_SUPPLIER: 'B2B',
+      FULL_SERVICE: 'Full-Service',
+    };
+    return labels[sellerType] || sellerType;
   };
 
   return (
@@ -295,6 +301,7 @@ export default function AdminUsersPage() {
                 <option value="">All Types</option>
                 <option value="B2C_MERCHANT">B2C Merchant</option>
                 <option value="B2B_SUPPLIER">B2B Supplier</option>
+                <option value="FULL_SERVICE">Full-Service</option>
               </select>
             </div>
             <div className="flex items-end">

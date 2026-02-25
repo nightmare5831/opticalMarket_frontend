@@ -227,7 +227,13 @@ export default function ProductsPage() {
                   key={product.id}
                   className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 group"
                 >
-                  <div className="relative h-52 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                  <div
+                    className="relative h-52 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden cursor-pointer"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setShowProductDetail(true);
+                    }}
+                  >
                     {product.images.length > 0 ? (
                       <img
                         src={product.images[0]}
