@@ -38,18 +38,28 @@ function SellerProfilePage() {
     }
   }, [user, loading, router]);
 
-  // Handle OAuth callback result
+  // Handle OAuth callback results (Mercado Pago & Bling)
   useEffect(() => {
     const mp = searchParams.get('mp');
     if (mp === 'connected') {
       toast.success('Mercado Pago connected successfully', toastConfig);
-      // Refresh user data
       if (user && token) {
         setAuth({ ...user, mercadoPagoConnected: true }, token);
       }
       router.replace('/seller/profile');
     } else if (mp === 'error') {
       toast.error('Failed to connect Mercado Pago', toastConfig);
+      router.replace('/seller/profile');
+    }
+
+    const bling = searchParams.get('bling');
+    if (bling === 'connected') {
+      toast.success('Bling connected successfully!', toastConfig);
+      fetchBlingStatus();
+      router.replace('/seller/profile');
+    } else if (bling === 'error') {
+      const reason = searchParams.get('reason') || 'unknown';
+      toast.error(`Failed to connect Bling: ${reason}`, toastConfig);
       router.replace('/seller/profile');
     }
   }, [searchParams]);
