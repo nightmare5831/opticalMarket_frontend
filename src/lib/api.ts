@@ -22,8 +22,8 @@ const getHeaders = () => {
 }
 
 const Request = {
-  Get: async (url: string) => {
-    return await Axios.get(url, { headers: getHeaders() }).then((res) => res.data)
+  Get: async (url: string, options?: AxiosRequestConfig) => {
+    return await Axios.get(url, { ...options, headers: { ...getHeaders(), ...options?.headers } }).then((res) => res.data)
   },
   Post: async (url: string, body?: any, options?: AxiosRequestConfig) => {
     return await Axios.post(url, body, { ...options, headers: { ...getHeaders(), ...options?.headers } }).then((res) => res.data)
