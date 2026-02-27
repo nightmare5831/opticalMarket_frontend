@@ -58,6 +58,9 @@ export default function SellerProductsPage() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvLoading, setCsvLoading] = useState(false);
 
+  // Detail modal
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+
   // Filter
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
@@ -300,7 +303,7 @@ export default function SellerProductsPage() {
                   className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group"
                 >
                   {/* Image */}
-                  <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                  <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden cursor-pointer" onClick={() => setDetailProduct(product)}>
                     {product.images.length > 0 ? (
                       <img
                         src={product.images[0]}
@@ -322,7 +325,7 @@ export default function SellerProductsPage() {
                     </div>
                     {/* Edit Button */}
                     <button
-                      onClick={() => openEditModal(product)}
+                      onClick={(e) => { e.stopPropagation(); openEditModal(product); }}
                       className="absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow hover:bg-yellow-500 hover:text-white transition"
                       title="Edit Product"
                     >
@@ -432,6 +435,94 @@ export default function SellerProductsPage() {
                 <button type="button" onClick={closeModal} className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Product Detail Modal */}
+      {detailProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setDetailProduct(null)}>
+          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-xl z-10">
+              <h2 className="text-xl font-bold text-gray-900">Product Details</h2>
+              <button onClick={() => setDetailProduct(null)} className="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+            </div>
+
+            <div className="p-6">
+              {/* Images */}
+              {detailProduct.images.length > 0 ? (
+                <div className="mb-6">
+                  <div className="rounded-lg overflow-hidden bg-gray-100 mb-3">
+                    <img src={detailProduct.images[0]} alt={detailProduct.name} className="w-full h-72 object-contain" />
+                  </div>
+                  {detailProduct.images.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto">
+                      {detailProduct.images.map((img, idx) => (
+                        <img key={idx} src={img} alt={`${detailProduct.name} ${idx + 1}`} className="h-20 w-20 object-cover rounded-lg border-2 border-gray-200 shrink-0" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="mb-6 h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300">
+                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+
+              {/* Status & Category */}
+              <div className="flex items-center gap-3 mb-4">
+                <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusBadge(detailProduct).cls}`}>
+                  {getStatusBadge(detailProduct).label}
+                </span>
+                <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
+                  {detailProduct.category?.name || 'Uncategorized'}
+                </span>
+              </div>
+
+              {/* Name & Price */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-1">{detailProduct.name}</h3>
+              <p className="text-2xl font-bold text-blue-600 mb-4">R$ {parseFloat(detailProduct.price.toString()).toFixed(2)}</p>
+
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 uppercase font-medium">SKU</p>
+                  <p className="text-sm font-semibold text-gray-900">{detailProduct.sku}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 uppercase font-medium">Stock</p>
+                  <p className={`text-sm font-semibold ${detailProduct.stock > 10 ? 'text-green-700' : detailProduct.stock > 0 ? 'text-yellow-700' : 'text-red-700'}`}>
+                    {detailProduct.stock} units
+                  </p>
+                </div>
+              </div>
+
+              {/* Description */}
+              {detailProduct.description && (
+                <div className="mb-6">
+                  <p className="text-xs text-gray-500 uppercase font-medium mb-1">Description</p>
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{detailProduct.description}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  onClick={() => { setDetailProduct(null); openEditModal(detailProduct); }}
+                  className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-medium transition"
+                >
+                  Edit Product
+                </button>
+                <button
+                  onClick={() => setDetailProduct(null)}
+                  className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 font-medium transition"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
