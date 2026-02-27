@@ -129,17 +129,42 @@ function SellerProfilePage() {
         toast.error(catResult.error || 'Category sync failed', toastConfig);
         return;
       }
-      toast.success(`Synced ${catResult.total} categories`, toastConfig);
+      setBlingSyncResult({ success: true, message: `Categories synced: ${catResult.total} categories` });
+      toast.success(`Categories synced successfully (${catResult.total} categories)`, toastConfig);
 
-      // Step 2: Sync products using the category map
-      const result = await Request.Post('/bling/sync/products', { categoryMap: catResult.categoryMap });
-      if (result.success) {
-        setBlingSyncResult({ success: true, message: result.message });
-        toast.success(result.message, toastConfig);
-      } else {
-        setBlingSyncResult({ success: false, message: result.error || 'Product sync failed' });
-        toast.error(result.error || 'Product sync failed', toastConfig);
+      // Step 2: Sync products page by page
+      let page = 1;
+      let totalCreated = 0;
+      let totalUpdated = 0;
+      let totalFailed = 0;
+      let totalSkipped = 0;
+      let totalProducts = 0;
+
+      while (true) {
+        setBlingSyncResult({ success: true, message: `Syncing products... (page ${page}, ${totalProducts} processed so far)` });
+        const result = await Request.Post('/bling/sync/products', { categoryMap: catResult.categoryMap, page });
+
+        if (!result.success) {
+          setBlingSyncResult({ success: false, message: result.error || 'Product sync failed' });
+          toast.error(result.error || 'Product sync failed', toastConfig);
+          return;
+        }
+
+        totalCreated += result.created;
+        totalUpdated += result.updated;
+        totalFailed += result.failed;
+        totalSkipped += result.skipped;
+        totalProducts += result.total;
+
+        toast.success(`Page ${page}: ${result.created + result.updated} products synced`, toastConfig);
+
+        if (!result.hasMore) break;
+        page++;
       }
+
+      const msg = `Sync complete! ${totalCreated + totalUpdated} of ${totalProducts} products (${totalCreated} new, ${totalUpdated} updated)${totalSkipped > 0 ? `, ${totalSkipped} skipped (no category)` : ''}${totalFailed > 0 ? `, ${totalFailed} failed` : ''}`;
+      setBlingSyncResult({ success: true, message: msg });
+      toast.success(msg, toastConfig);
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Failed to sync from Bling';
       setBlingSyncResult({ success: false, message: msg });
