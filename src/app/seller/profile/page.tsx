@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
 import Header from '@/components/Header';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
 function SellerProfilePage() {
@@ -119,18 +118,20 @@ function SellerProfilePage() {
   };
 
   const handleBlingSync = async () => {
+    console.log('[BlingSync] Sync button clicked, starting sync...');
     setBlingSyncing(true);
     setBlingSyncResult(null);
     try {
       // Step 1: Sync categories and get the blingId → localId map
-      const catResult = await Request.Get('/bling/sync/categories');
+      console.log('[BlingSync] Step 1: Syncing categories...');
+      setBlingSyncResult({ success: true, message: 'Syncing categories...' });
+      const catResult = await Request.Get('/bling/sync/categories', { timeout: 120000 });
+      console.log('[BlingSync] Category sync response:', catResult);
       if (!catResult.success) {
         setBlingSyncResult({ success: false, message: catResult.error || 'Category sync failed' });
         toast.error(catResult.error || 'Category sync failed', toastConfig);
         return;
       }
-      setBlingSyncResult({ success: true, message: `Categories synced: ${catResult.total} categories` });
-      toast.success(`Categories synced successfully (${catResult.total} categories)`, toastConfig);
 
       // Step 2: Sync products page by page
       let page = 1;
@@ -141,8 +142,10 @@ function SellerProfilePage() {
       let totalProducts = 0;
 
       while (true) {
+        console.log(`[BlingSync] Step 2: Syncing products page ${page}...`);
         setBlingSyncResult({ success: true, message: `Syncing products... (page ${page}, ${totalProducts} processed so far)` });
-        const result = await Request.Post('/bling/sync/products', { categoryMap: catResult.categoryMap, page });
+        const result = await Request.Post('/bling/sync/products', { categoryMap: catResult.categoryMap, page }, { timeout: 120000 });
+        console.log(`[BlingSync] Product sync page ${page} response:`, result);
 
         if (!result.success) {
           setBlingSyncResult({ success: false, message: result.error || 'Product sync failed' });
@@ -156,8 +159,6 @@ function SellerProfilePage() {
         totalSkipped += result.skipped;
         totalProducts += result.total;
 
-        toast.success(`Page ${page}: ${result.created + result.updated} products synced`, toastConfig);
-
         if (!result.hasMore) break;
         page++;
       }
@@ -166,10 +167,13 @@ function SellerProfilePage() {
       setBlingSyncResult({ success: true, message: msg });
       toast.success(msg, toastConfig);
     } catch (error: any) {
+      console.error('[BlingSync] Sync error:', error);
+      console.error('[BlingSync] Error response:', error.response?.status, error.response?.data);
       const msg = error.response?.data?.message || 'Failed to sync from Bling';
       setBlingSyncResult({ success: false, message: msg });
       toast.error(msg, toastConfig);
     } finally {
+      console.log('[BlingSync] Sync finished');
       setBlingSyncing(false);
     }
   };
@@ -179,8 +183,6 @@ function SellerProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ToastContainer />
-
       <main className="mx-8 px-6 py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>

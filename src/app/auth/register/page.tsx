@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import Request from '@/lib/api';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
 export default function RegisterPage() {
@@ -65,7 +64,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <ToastContainer />
       <div className="max-w-md w-full space-y-8 border-2 border-gray-300 rounded-xl p-8 bg-white shadow-lg">
         <div className="flex flex-col items-center">
           <div className="relative w-32 h-32 mb-4 rounded-full border-4 border-gray-300 overflow-hidden p-4 bg-white">

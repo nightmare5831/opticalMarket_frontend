@@ -6,9 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
 import Request from '@/lib/api';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface Address {
   id: string;
@@ -199,7 +198,6 @@ export default function CheckoutAddressPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ToastContainer />
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center gap-2 mb-6">
           <div className="flex items-center">

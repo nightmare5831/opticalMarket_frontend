@@ -8,6 +8,23 @@ const Axios = axios.create({
   },
 })
 
+// Debug interceptors
+Axios.interceptors.request.use((config) => {
+  console.log(`[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
+  return config
+}, (error) => {
+  console.error('[API] Request error:', error)
+  return Promise.reject(error)
+})
+
+Axios.interceptors.response.use((response) => {
+  console.log(`[API] ${response.status} ${response.config.url}`)
+  return response
+}, (error) => {
+  console.error(`[API] Response error: ${error.response?.status || 'NO_RESPONSE'} ${error.config?.url}`, error.message)
+  return Promise.reject(error)
+})
+
 const getHeaders = () => {
   if (typeof window !== 'undefined') {
     const authData = localStorage.getItem('auth-storage')

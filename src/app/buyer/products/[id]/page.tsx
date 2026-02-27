@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { useCartStore } from '@/stores/cartStore';
 import { toastConfig } from '@/lib/toast';
 import Header from '@/components/Header';
@@ -99,7 +98,6 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ToastContainer />
       <div className="max-w-6xl mx-auto p-8">
         <button
           onClick={() => router.push('/buyer/products')}

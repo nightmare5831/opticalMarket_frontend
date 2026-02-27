@@ -5,8 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
 import Request from '@/lib/api';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
 interface Product {
@@ -122,7 +121,6 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ToastContainer />
 
       <div className="mx-8 px-6 py-8">
         <div className="mb-6">
