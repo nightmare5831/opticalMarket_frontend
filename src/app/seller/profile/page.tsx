@@ -132,19 +132,36 @@ function SellerProfilePage() {
         toast.error(catResult.error || 'Category sync failed', toastConfig);
         return;
       }
+      toast.success(`Categories synced! ${catResult.synced} from Bling, ${catResult.total} total`, toastConfig);
 
-      // Step 2: Sync products page by page
+      // Step 2: Count products (non-blocking) + Sync products in parallel
+      let totalPages = 0;
+      let totalBlingProducts = 0;
+      const countPromise = Request.Get('/bling/sync/count', { timeout: 600000 })
+        .then((countResult: any) => {
+          if (countResult.success) {
+            totalPages = countResult.totalPages;
+            totalBlingProducts = countResult.totalProducts;
+            console.log(`[BlingSync] Count received: ${totalBlingProducts} products, ${totalPages} pages`);
+          }
+        })
+        .catch((err: any) => console.warn('[BlingSync] Count failed (non-critical):', err.message));
+
+      // Step 3: Sync products page by page (starts immediately, no waiting for count)
       let page = 1;
       let totalCreated = 0;
       let totalUpdated = 0;
       let totalFailed = 0;
       let totalSkipped = 0;
       let totalProducts = 0;
+      const MAX_PAGES = 200;
 
-      while (true) {
-        console.log(`[BlingSync] Step 2: Syncing products page ${page}...`);
-        setBlingSyncResult({ success: true, message: `Syncing products... (page ${page}, ${totalProducts} processed so far)` });
-        const result = await Request.Post('/bling/sync/products', { categoryMap: catResult.categoryMap, page }, { timeout: 120000 });
+      while (page <= MAX_PAGES) {
+        console.log(`[BlingSync] Step 3: Syncing products page ${page}...`);
+        const pageInfo = totalPages > 0 ? `page ${page} of ${totalPages}` : `page ${page}`;
+        const progressInfo = totalBlingProducts > 0 ? `${totalProducts}/${totalBlingProducts}` : `${totalProducts}`;
+        setBlingSyncResult({ success: true, message: `Syncing products... (${pageInfo}, ${progressInfo} processed)` });
+        const result = await Request.Post('/bling/sync/products', { categoryMap: catResult.categoryMap, page }, { timeout: 180000 });
         console.log(`[BlingSync] Product sync page ${page} response:`, result);
 
         if (!result.success) {
@@ -163,7 +180,9 @@ function SellerProfilePage() {
         page++;
       }
 
-      const msg = `Sync complete! ${totalCreated + totalUpdated} of ${totalProducts} products (${totalCreated} new, ${totalUpdated} updated)${totalSkipped > 0 ? `, ${totalSkipped} skipped (no category)` : ''}${totalFailed > 0 ? `, ${totalFailed} failed` : ''}`;
+      // Wait for count to finish if still running
+      await countPromise;
+      const msg = `Sync complete! ${totalCreated + totalUpdated} of ${totalBlingProducts || totalProducts} products (${totalCreated} new, ${totalUpdated} updated)${totalSkipped > 0 ? `, ${totalSkipped} skipped (no category)` : ''}${totalFailed > 0 ? `, ${totalFailed} failed` : ''}`;
       setBlingSyncResult({ success: true, message: msg });
       toast.success(msg, toastConfig);
     } catch (error: any) {

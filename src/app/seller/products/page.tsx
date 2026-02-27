@@ -77,7 +77,9 @@ export default function SellerProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`${API_URL}/categories`);
+      const response = await axios.get(`${API_URL}/categories`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
