@@ -7,9 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
 import Request from '@/lib/api';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface SellerPayment {
   paymentId: string;
@@ -222,7 +221,6 @@ export default function CheckoutPaymentPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <ToastContainer />
         <main className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -308,7 +306,6 @@ export default function CheckoutPaymentPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ToastContainer />
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Progress steps */}
         <div className="flex items-center gap-2 mb-6">

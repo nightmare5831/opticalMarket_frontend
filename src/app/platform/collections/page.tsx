@@ -6,8 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
@@ -117,7 +116,6 @@ export default function PlatformCollectionsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ToastContainer />
 
       <main className="mx-8 px-6 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
