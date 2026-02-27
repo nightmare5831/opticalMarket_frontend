@@ -117,7 +117,7 @@ export default function CategoriesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="mb-4 sm:mb-0">
             <h1 className="text-3xl font-bold text-gray-900">Category Management</h1>
-            <p className="text-gray-600 mt-1">Manage your product categories</p>
+            <p className="text-gray-600 mt-1">Manage your product categories ({categories.length} total)</p>
           </div>
           <button
             onClick={() => {
