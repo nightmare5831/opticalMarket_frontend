@@ -134,20 +134,23 @@ function SellerProfilePage() {
       }
       toast.success(`Categories synced! ${catResult.synced} from Bling, ${catResult.total} total`, toastConfig);
 
-      // Step 2: Count products (non-blocking) + Sync products in parallel
+      // Step 2: Count products first (sequential to avoid rate limit)
+      console.log('[BlingSync] Step 2: Counting products...');
+      setBlingSyncResult({ success: true, message: 'Counting products...' });
       let totalPages = 0;
       let totalBlingProducts = 0;
-      const countPromise = Request.Get('/bling/sync/count', { timeout: 600000 })
-        .then((countResult: any) => {
-          if (countResult.success) {
-            totalPages = countResult.totalPages;
-            totalBlingProducts = countResult.totalProducts;
-            console.log(`[BlingSync] Count received: ${totalBlingProducts} products, ${totalPages} pages`);
-          }
-        })
-        .catch((err: any) => console.warn('[BlingSync] Count failed (non-critical):', err.message));
+      try {
+        const countResult = await Request.Get('/bling/sync/count', { timeout: 600000 });
+        if (countResult.success) {
+          totalPages = countResult.totalPages;
+          totalBlingProducts = countResult.totalProducts;
+          console.log(`[BlingSync] Count received: ${totalBlingProducts} products, ${totalPages} pages`);
+        }
+      } catch (err: any) {
+        console.warn('[BlingSync] Count failed (non-critical):', err.message);
+      }
 
-      // Step 3: Sync products page by page (starts immediately, no waiting for count)
+      // Step 3: Sync products page by page
       let page = 1;
       let totalCreated = 0;
       let totalUpdated = 0;
@@ -179,9 +182,6 @@ function SellerProfilePage() {
         if (!result.hasMore) break;
         page++;
       }
-
-      // Wait for count to finish if still running
-      await countPromise;
       const msg = `Sync complete! ${totalCreated + totalUpdated} of ${totalBlingProducts || totalProducts} products (${totalCreated} new, ${totalUpdated} updated)${totalSkipped > 0 ? `, ${totalSkipped} skipped (no category)` : ''}${totalFailed > 0 ? `, ${totalFailed} failed` : ''}`;
       setBlingSyncResult({ success: true, message: msg });
       toast.success(msg, toastConfig);
