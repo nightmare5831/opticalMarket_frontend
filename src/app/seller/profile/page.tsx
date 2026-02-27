@@ -122,13 +122,23 @@ function SellerProfilePage() {
     setBlingSyncing(true);
     setBlingSyncResult(null);
     try {
-      const result = await Request.Get('/bling/sync/products');
+      // Step 1: Sync categories and get the blingId → localId map
+      const catResult = await Request.Get('/bling/sync/categories');
+      if (!catResult.success) {
+        setBlingSyncResult({ success: false, message: catResult.error || 'Category sync failed' });
+        toast.error(catResult.error || 'Category sync failed', toastConfig);
+        return;
+      }
+      toast.success(`Synced ${catResult.total} categories`, toastConfig);
+
+      // Step 2: Sync products using the category map
+      const result = await Request.Post('/bling/sync/products', { categoryMap: catResult.categoryMap });
       if (result.success) {
         setBlingSyncResult({ success: true, message: result.message });
         toast.success(result.message, toastConfig);
       } else {
-        setBlingSyncResult({ success: false, message: result.error || 'Sync failed' });
-        toast.error(result.error || 'Sync failed', toastConfig);
+        setBlingSyncResult({ success: false, message: result.error || 'Product sync failed' });
+        toast.error(result.error || 'Product sync failed', toastConfig);
       }
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Failed to sync from Bling';
