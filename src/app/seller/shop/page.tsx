@@ -17,7 +17,7 @@ interface Product {
   stock: number;
   images: string[];
   category: { id: string; name: string };
-  seller?: { name: string };
+  seller?: { id: string; name: string; legalCompanyName?: string; sellerType?: string };
 }
 
 interface Category {
@@ -59,7 +59,7 @@ export default function SellerShopPage() {
 
   const fetchCategories = async () => {
     try {
-      const data = await Request.Get('/categories');
+      const data = await Request.Get('/categories?productType=B2B');
       setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -225,7 +225,10 @@ export default function SellerShopPage() {
                   key={product.id}
                   className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 group"
                 >
-                  <div className="relative h-52 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                  <div
+                    className="relative h-52 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden cursor-pointer"
+                    onClick={() => { setSelectedProduct(product); setShowProductDetail(true); }}
+                  >
                     {product.images.length > 0 ? (
                       <img
                         src={product.images[0]}
@@ -409,7 +412,7 @@ export default function SellerShopPage() {
                     {selectedProduct.seller && (
                       <div className="flex items-center justify-between py-3 border-b">
                         <span className="text-sm font-medium text-gray-600">Supplier</span>
-                        <span className="font-semibold text-gray-900">{selectedProduct.seller.name}</span>
+                        <span className="font-semibold text-gray-900">{selectedProduct.seller.legalCompanyName || selectedProduct.seller.name}</span>
                       </div>
                     )}
                   </div>

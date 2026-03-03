@@ -398,7 +398,16 @@ function OrdersPage() {
                             {order.paymentStatus}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                          {order.status === 'PENDING' && (
+                            <Link
+                              href={`/buyer/checkout/payment?orderId=${order.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+                            >
+                              Complete Payment
+                            </Link>
+                          )}
                           <svg
                             className={`w-5 h-5 text-gray-400 transition-transform inline-block ${
                               expandedOrder === order.id ? 'rotate-180' : ''

@@ -10,6 +10,8 @@ export interface CartItem {
   stock: number;
   category?: string;
   sellerName?: string;
+  sellerId?: string;
+  sellerType?: 'B2C_MERCHANT' | 'B2B_SUPPLIER' | 'FULL_SERVICE';
 }
 
 interface CartState {
@@ -55,6 +57,8 @@ export const useCartStore = create<CartState>()(
                 stock: item.stock,
                 category: item.category,
                 sellerName: item.sellerName,
+                sellerId: item.sellerId,
+                sellerType: item.sellerType,
               },
             ],
           });

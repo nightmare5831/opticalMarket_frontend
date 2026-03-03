@@ -43,6 +43,7 @@ export default function CheckoutAddressPage() {
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
 
+  const [cepLoading, setCepLoading] = useState(false);
   const [newAddress, setNewAddress] = useState({
     street: '',
     number: '',
@@ -52,6 +53,43 @@ export default function CheckoutAddressPage() {
     state: '',
     zipCode: '',
   });
+
+  const handleCepChange = async (value: string) => {
+    const clean = value.replace(/\D/g, '');
+    setNewAddress((prev) => ({ ...prev, zipCode: clean }));
+    if (clean.length === 8) {
+      setCepLoading(true);
+      try {
+        const data = await Request.Get(`/address/cep/${clean}`);
+        if (data) {
+          setNewAddress((prev) => ({
+            ...prev,
+            street: data.street || prev.street,
+            neighborhood: data.neighborhood || prev.neighborhood,
+            city: data.city || prev.city,
+            state: data.state || prev.state,
+          }));
+        }
+      } catch { /* ignore */ }
+      setCepLoading(false);
+    }
+  };
+
+  // Auto-detect shipping type based on seller types in cart
+  const autoDetectShippingType = (): 'PLATFORM' | 'SELLER' | null => {
+    const sellerTypes = new Set(items.map((i) => i.sellerType).filter(Boolean));
+    if (sellerTypes.size === 0) return null;
+    if (sellerTypes.has('FULL_SERVICE') && sellerTypes.size === 1) return 'PLATFORM';
+    if ((sellerTypes.has('B2C_MERCHANT') || sellerTypes.has('B2B_SUPPLIER')) && !sellerTypes.has('FULL_SERVICE')) return 'SELLER';
+    return null; // mixed — let user choose
+  };
+
+  useEffect(() => {
+    if (selectedAddressId && !shippingType) {
+      const auto = autoDetectShippingType();
+      if (auto) handleShippingTypeSelect(auto);
+    }
+  }, [selectedAddressId]);
 
   const fillMockAddress = () => {
     setNewAddress({
@@ -404,16 +442,15 @@ export default function CheckoutAddressPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        ZIP Code
+                        ZIP Code {cepLoading && <span className="text-blue-500 text-xs ml-1">Looking up...</span>}
                       </label>
                       <input
                         type="text"
                         value={newAddress.zipCode}
-                        onChange={(e) =>
-                          setNewAddress({ ...newAddress, zipCode: e.target.value })
-                        }
+                        onChange={(e) => handleCepChange(e.target.value)}
                         required
-                        maxLength={9}
+                        maxLength={8}
+                        placeholder="00000000"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>

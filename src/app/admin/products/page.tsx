@@ -30,6 +30,8 @@ export default function AdminProductsPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('ALL');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -66,6 +68,38 @@ export default function AdminProductsPage() {
       fetchProducts();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Failed to update status', toastConfig);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredProducts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredProducts.map((p) => p.id)));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected product(s)?`)) return;
+    setDeleting(true);
+    try {
+      await Request.Delete('/admin/products/batch', { ids: Array.from(selectedIds) });
+      toast.success(`${selectedIds.size} product(s) deleted`, toastConfig);
+      setSelectedIds(new Set());
+      fetchProducts();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to delete products', toastConfig);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -226,6 +260,20 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
+        {/* Bulk Actions */}
+        {selectedIds.size > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-0 flex items-center justify-between">
+            <span className="text-sm text-blue-800 font-medium">{selectedIds.size} product(s) selected</span>
+            <button
+              onClick={handleBatchDelete}
+              disabled={deleting}
+              className="px-4 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+            >
+              {deleting ? 'Deleting...' : 'Delete Selected'}
+            </button>
+          </div>
+        )}
+
         {/* Products Table */}
         <div className="bg-white rounded-b-lg shadow-sm border border-gray-200 overflow-hidden">
           {productsLoading ? (
@@ -237,6 +285,14 @@ export default function AdminProductsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={filteredProducts.length > 0 && selectedIds.size === filteredProducts.length}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seller</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
@@ -248,6 +304,14 @@ export default function AdminProductsPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4 w-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(product.id)}
+                          onChange={() => toggleSelect(product.id)}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                        />
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {product.images[0] ? (
