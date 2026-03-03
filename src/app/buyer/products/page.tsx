@@ -17,7 +17,7 @@ interface Product {
   stock: number;
   images: string[];
   category: { id: string; name: string };
-  seller?: { name: string };
+  seller?: { id: string; name: string; sellerType?: string; legalCompanyName?: string };
 }
 
 interface Category {
@@ -59,7 +59,7 @@ export default function ProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const data = await Request.Get('/categories');
+      const data = await Request.Get('/categories?productType=B2C');
       setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -114,6 +114,8 @@ export default function ProductsPage() {
       stock: product.stock,
       category: product.category?.name,
       sellerName: product.seller?.name,
+      sellerId: product.seller?.id,
+      sellerType: product.seller?.sellerType as any,
     });
     toast.success(`${product.name} added to cart!`, toastConfig);
   };

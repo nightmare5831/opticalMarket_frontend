@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Request from '@/lib/api';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
+import { validateCNPJ, validateCPF, formatCNPJ, formatCPF } from '@/lib/validators';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState('CUSTOMER');
   const [sellerType, setSellerType] = useState('B2C_MERCHANT');
   const [cnpj, setCnpj] = useState('');
+  const [cpf, setCpf] = useState('');
   const [legalCompanyName, setLegalCompanyName] = useState('');
   const [acceptedTos, setAcceptedTos] = useState(false);
   const [error, setError] = useState('');
@@ -30,6 +32,19 @@ export default function RegisterPage() {
       return;
     }
 
+    // Validate documents for sellers
+    if (role === 'SELLER') {
+      if (sellerType === 'B2C_MERCHANT' || sellerType === 'B2B_SUPPLIER') {
+        if (!cnpj) { setError('CNPJ is required for this seller type.'); return; }
+        if (!validateCNPJ(cnpj)) { setError('Invalid CNPJ number.'); return; }
+      }
+      if (sellerType === 'FULL_SERVICE') {
+        if (!cnpj && !cpf) { setError('CNPJ or CPF is required for Full-Service sellers.'); return; }
+        if (cnpj && !validateCNPJ(cnpj)) { setError('Invalid CNPJ number.'); return; }
+        if (cpf && !validateCPF(cpf)) { setError('Invalid CPF number.'); return; }
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -39,6 +54,7 @@ export default function RegisterPage() {
       if (role === 'SELLER') {
         payload.sellerType = sellerType;
         if (cnpj) payload.cnpj = cnpj;
+        if (cpf) payload.cpf = cpf;
         if (legalCompanyName) payload.legalCompanyName = legalCompanyName;
       }
 
@@ -248,18 +264,37 @@ export default function RegisterPage() {
 
                 <div>
                   <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700 mb-1">
-                    CNPJ (Optional)
+                    CNPJ {sellerType !== 'FULL_SERVICE' ? '*' : ''}
                   </label>
                   <input
                     id="cnpj"
                     name="cnpj"
                     type="text"
                     value={cnpj}
-                    onChange={(e) => setCnpj(e.target.value)}
+                    onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
                     className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     placeholder="00.000.000/0000-00"
+                    maxLength={18}
                   />
                 </div>
+
+                {sellerType === 'FULL_SERVICE' && (
+                  <div>
+                    <label htmlFor="cpf" className="block text-sm font-medium text-gray-700 mb-1">
+                      CPF {!cnpj ? '*' : ''}
+                    </label>
+                    <input
+                      id="cpf"
+                      name="cpf"
+                      type="text"
+                      value={cpf}
+                      onChange={(e) => setCpf(formatCPF(e.target.value))}
+                      className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>

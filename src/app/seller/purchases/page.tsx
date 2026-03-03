@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header';
 import Request from '@/lib/api';
@@ -249,7 +250,16 @@ function SellerPurchasesPage() {
                         <td className="px-6 py-4">
                           <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getStatusColor(order.paymentStatus)}`}>{order.paymentStatus}</span>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                          {order.status === 'PENDING' && (
+                            <Link
+                              href={`/buyer/checkout/payment?orderId=${order.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+                            >
+                              Complete Payment
+                            </Link>
+                          )}
                           <svg className={`w-5 h-5 text-gray-400 transition-transform inline-block ${expandedOrder === order.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>

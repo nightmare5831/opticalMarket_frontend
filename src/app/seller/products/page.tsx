@@ -540,6 +540,29 @@ export default function SellerProductsPage() {
                 <label className="block text-sm font-medium mb-1">CSV File *</label>
                 <input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} className="w-full p-2 border rounded" />
                 <p className="text-xs text-gray-500 mt-1">Columns: sku, name, description, price, stock, categoryId, images (URLs separated by ;)</p>
+                <a
+                  href={`${API_URL}/products/csv-sample`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const link = document.createElement('a');
+                    link.href = `${API_URL}/products/csv-sample`;
+                    const headers = new Headers();
+                    if (token) headers.append('Authorization', `Bearer ${token}`);
+                    fetch(link.href, { headers })
+                      .then(res => res.blob())
+                      .then(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'product_import_sample.csv';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      });
+                  }}
+                  className="inline-block mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium underline"
+                >
+                  Download Sample CSV
+                </a>
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={handleCsvImport} disabled={csvLoading || !csvFile} className="flex-1 bg-purple-600 text-white py-2 rounded hover:bg-purple-700 disabled:bg-gray-400">

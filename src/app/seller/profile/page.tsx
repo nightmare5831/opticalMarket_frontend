@@ -14,6 +14,7 @@ function SellerProfilePage() {
   const { user, loading, setAuth, token } = useAuth();
   const [sellerType, setSellerType] = useState('');
   const [cnpj, setCnpj] = useState('');
+  const [phone, setPhone] = useState('');
   const [legalCompanyName, setLegalCompanyName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -32,6 +33,7 @@ function SellerProfilePage() {
     } else {
       setSellerType(user.sellerType || 'B2C_MERCHANT');
       setCnpj(user.cnpj || '');
+      setPhone(user.phone || '');
       setLegalCompanyName(user.legalCompanyName || '');
       fetchBlingStatus();
     }
@@ -66,9 +68,9 @@ function SellerProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await Request.Patch(`/admin/users/${user?.id}/business-info`, { cnpj, legalCompanyName });
+      await Request.Patch('/seller/business-info', { cnpj, legalCompanyName, phone });
       if (user && token) {
-        setAuth({ ...user, cnpj, legalCompanyName }, token);
+        setAuth({ ...user, cnpj, legalCompanyName, phone }, token);
       }
       toast.success('Business information updated', toastConfig);
       setIsEditing(false);
@@ -253,18 +255,16 @@ function SellerProfilePage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Seller Type</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className={`p-4 border-2 rounded-lg ${sellerType === 'B2C_MERCHANT' ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200 bg-gray-50'}`}>
-                      <div className="font-medium text-gray-900">B2C Merchant</div>
-                      <div className="text-xs text-gray-500">Retail seller</div>
+                  <div className={`p-4 border-2 rounded-lg ${
+                    sellerType === 'B2C_MERCHANT' ? 'border-cyan-500 bg-cyan-50' :
+                    sellerType === 'B2B_SUPPLIER' ? 'border-indigo-500 bg-indigo-50' :
+                    'border-purple-500 bg-purple-50'
+                  }`}>
+                    <div className="font-medium text-gray-900">
+                      {sellerType === 'B2C_MERCHANT' ? 'B2C Merchant' : sellerType === 'B2B_SUPPLIER' ? 'B2B Supplier' : 'Full-Service'}
                     </div>
-                    <div className={`p-4 border-2 rounded-lg ${sellerType === 'B2B_SUPPLIER' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-gray-50'}`}>
-                      <div className="font-medium text-gray-900">B2B Supplier</div>
-                      <div className="text-xs text-gray-500">Wholesale supplier</div>
-                    </div>
-                    <div className={`p-4 border-2 rounded-lg ${sellerType === 'FULL_SERVICE' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
-                      <div className="font-medium text-gray-900">Full-Service</div>
-                      <div className="text-xs text-gray-500">Commission-based</div>
+                    <div className="text-xs text-gray-500">
+                      {sellerType === 'B2C_MERCHANT' ? 'Retail seller' : sellerType === 'B2B_SUPPLIER' ? 'Wholesale supplier' : 'Commission-based'}
                     </div>
                   </div>
                 </div>
@@ -289,13 +289,19 @@ function SellerProfilePage() {
                     className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isEditing ? 'border-gray-300 bg-white text-gray-900' : 'border-gray-300 bg-gray-50 text-gray-600 cursor-not-allowed'}`}
                     placeholder="00.000.000/0000-00" />
                 </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <input id="phone" type="text" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={!isEditing}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isEditing ? 'border-gray-300 bg-white text-gray-900' : 'border-gray-300 bg-gray-50 text-gray-600 cursor-not-allowed'}`}
+                    placeholder="(11) 99999-9999" />
+                </div>
               </div>
               {isEditing && (
                 <div className="flex gap-3 mt-6">
                   <button onClick={handleSave} disabled={saving} className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
                     {saving ? 'Saving...' : 'Save Changes'}
                   </button>
-                  <button onClick={() => { setIsEditing(false); setCnpj(user.cnpj || ''); setLegalCompanyName(user.legalCompanyName || ''); }} disabled={saving}
+                  <button onClick={() => { setIsEditing(false); setCnpj(user.cnpj || ''); setPhone(user.phone || ''); setLegalCompanyName(user.legalCompanyName || ''); }} disabled={saving}
                     className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     Cancel
                   </button>
