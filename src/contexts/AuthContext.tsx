@@ -11,6 +11,8 @@ interface User {
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   sellerType?: 'B2C_MERCHANT' | 'B2B_SUPPLIER' | 'FULL_SERVICE';
   cnpj?: string;
+  cpf?: string;
+  phone?: string;
   legalCompanyName?: string;
   mercadoPagoConnected?: boolean;
   mercadoPagoAccountId?: string;
