@@ -49,6 +49,11 @@ export const CUSTOMER_TABS: NavTab[] = [
   { label: 'Orders', path: '/buyer/orders' },
 ];
 
+// Public navigation tabs (unauthenticated users)
+export const PUBLIC_TABS: NavTab[] = [
+  { label: 'Products', path: '/buyer/products' },
+];
+
 // Get navigation tabs based on user role, status, and sellerType
 export const getNavigationTabs = (role: string | undefined, status?: string, sellerType?: string): NavTab[] => {
   switch (role) {
@@ -70,8 +75,9 @@ export const getNavigationTabs = (role: string | undefined, status?: string, sel
       return tabs;
     }
     case 'CUSTOMER':
-    default:
       return CUSTOMER_TABS;
+    default:
+      return PUBLIC_TABS;
   }
 };
 
@@ -85,7 +91,8 @@ export const getHomePath = (role: string | undefined): string => {
     case 'SELLER':
       return '/seller';
     case 'CUSTOMER':
-    default:
       return '/';
+    default:
+      return '/buyer/products';
   }
 };

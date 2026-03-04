@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
@@ -27,6 +28,7 @@ interface Category {
 }
 
 export default function ProductsPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const { addItem } = useCartStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -102,6 +104,11 @@ export default function ProductsPage() {
   }, [searchName, searchSku, selectedCategory, minPrice, maxPrice]);
 
   const handleAddToCart = (product: Product) => {
+    if (!user) {
+      toast.info('Please login to add items to cart', toastConfig);
+      router.push('/auth/login?redirect=/buyer/products');
+      return;
+    }
     if (product.stock < 1) {
       toast.error('Product is out of stock', toastConfig);
       return;
@@ -284,7 +291,7 @@ export default function ProductsPage() {
                       <p className="text-2xl font-bold text-blue-600">
                         R$ {parseFloat(product.price.toString()).toFixed(2)}
                       </p>
-                      {user?.role === 'CUSTOMER' && (
+                      {(!user || user?.role === 'CUSTOMER') && (
                         <button
                           onClick={() => handleAddToCart(product)}
                           disabled={product.stock < 1}
@@ -431,8 +438,8 @@ export default function ProductsPage() {
                     </div>
                   )}
 
-                  {/* Add to Cart Button for Customers */}
-                  {user?.role === 'CUSTOMER' && (
+                  {/* Add to Cart Button for Customers and unauthenticated users */}
+                  {(!user || user?.role === 'CUSTOMER') && (
                     <div className="mt-6 pt-4 border-t">
                       <button
                         onClick={() => {
