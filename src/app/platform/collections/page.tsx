@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -130,7 +131,7 @@ export default function PlatformCollectionsPage() {
 
         {loadingData ? (
           <div className="text-center py-20">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+            <LoadingSpinner />
           </div>
         ) : collections.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-300">

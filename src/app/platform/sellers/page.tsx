@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -78,7 +79,7 @@ export default function PlatformSellersPage() {
   if (loading || !user || user.role !== 'PLATFORM_USER') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -95,7 +96,7 @@ export default function PlatformSellersPage() {
 
         {dataLoading ? (
           <div className="text-center py-20">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-r-transparent"></div>
+            <LoadingSpinner />
           </div>
         ) : sellers.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-300">

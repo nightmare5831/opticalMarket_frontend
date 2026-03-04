@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
@@ -189,7 +190,7 @@ export default function CategoriesPage() {
                     className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {submitting && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <LoadingSpinner size="sm" color="white" />
                     )}
                     {submitting
                       ? (editingId ? 'Updating...' : 'Creating...')
@@ -218,8 +219,7 @@ export default function CategoriesPage() {
         {/* Categories List */}
         {loading ? (
           <div className="text-center py-20">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600 font-medium">Loading categories...</p>
+            <LoadingSpinner message="Loading categories..." />
           </div>
         ) : categories.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-xl border-2 border-dashed border-gray-300">

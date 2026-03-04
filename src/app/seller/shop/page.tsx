@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
 import Request from '@/lib/api';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
@@ -59,7 +60,7 @@ export default function SellerShopPage() {
 
   const fetchCategories = async () => {
     try {
-      const data = await Request.Get('/categories?productType=B2B');
+      const data = await Request.Get('/categories?productType=B2B&scope=shop');
       setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -209,8 +210,7 @@ export default function SellerShopPage() {
         {/* Products Grid */}
         {loading ? (
           <div className="text-center py-20">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600 font-medium">Loading products...</p>
+            <LoadingSpinner message="Loading products..." />
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-xl border-2 border-dashed border-gray-300">

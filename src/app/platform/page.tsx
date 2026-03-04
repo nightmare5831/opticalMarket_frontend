@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function PlatformDashboardPage() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function PlatformDashboardPage() {
   if (loading || !user || user.role !== 'PLATFORM_USER') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <LoadingSpinner />
       </div>
     );
   }
