@@ -12,6 +12,12 @@ import { toastConfig } from '@/lib/toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
+interface SellerCollection {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface Seller {
   id: string;
   name: string;
@@ -20,6 +26,15 @@ interface Seller {
   commissionRate: string | null;
   mercadoPagoConnected: boolean;
   _count: { products: number; orders: number };
+  sellerCollections: SellerCollection[];
+}
+
+interface CollectionWithSeller {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  seller?: { id: string; name: string } | null;
 }
 
 export default function PlatformSellersPage() {
@@ -33,6 +48,13 @@ export default function PlatformSellersPage() {
   const [editingSeller, setEditingSeller] = useState<Seller | null>(null);
   const [commissionValue, setCommissionValue] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Manage collections modal
+  const [collectionsModalSeller, setCollectionsModalSeller] = useState<Seller | null>(null);
+  const [allCollections, setAllCollections] = useState<CollectionWithSeller[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<Set<string>>(new Set());
+  const [savingCollections, setSavingCollections] = useState(false);
+  const [collectionsLoading, setCollectionsLoading] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -76,6 +98,47 @@ export default function PlatformSellersPage() {
     } finally { setSaving(false); }
   };
 
+  const openCollectionsModal = async (seller: Seller) => {
+    setCollectionsModalSeller(seller);
+    setCollectionsLoading(true);
+    setSelectedCollectionIds(new Set(seller.sellerCollections.map((c) => c.id)));
+    try {
+      const res = await axios.get(`${API_URL}/collections`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAllCollections(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      toast.error('Failed to load collections', toastConfig);
+      setAllCollections([]);
+    } finally { setCollectionsLoading(false); }
+  };
+
+  const toggleCollection = (collectionId: string) => {
+    setSelectedCollectionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(collectionId)) next.delete(collectionId);
+      else next.add(collectionId);
+      return next;
+    });
+  };
+
+  const handleSaveCollections = async () => {
+    if (!collectionsModalSeller) return;
+    setSavingCollections(true);
+    try {
+      await axios.patch(
+        `${API_URL}/admin/users/${collectionsModalSeller.id}/collections`,
+        { collectionIds: Array.from(selectedCollectionIds) },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      toast.success('Collections updated successfully', toastConfig);
+      setCollectionsModalSeller(null);
+      fetchSellers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update collections', toastConfig);
+    } finally { setSavingCollections(false); }
+  };
+
   if (loading || !user || user.role !== 'PLATFORM_USER') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -89,7 +152,7 @@ export default function PlatformSellersPage() {
       <main className="mx-8 px-6 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Full-Service Sellers</h1>
-          <p className="text-gray-600 mt-1">Manage commission rates for Full-Service sellers</p>
+          <p className="text-gray-600 mt-1">Manage commission rates and collections for Full-Service sellers</p>
         </div>
 
         {dataLoading ? (
@@ -112,6 +175,7 @@ export default function PlatformSellersPage() {
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">MP Connected</th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Commission</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Collections</th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Products</th>
                     <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
                   </tr>
@@ -138,14 +202,35 @@ export default function PlatformSellersPage() {
                           {seller.commissionRate ? `${Number(seller.commissionRate)}%` : 'Not set'}
                         </span>
                       </td>
+                      <td className="px-6 py-4">
+                        {seller.sellerCollections?.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {seller.sellerCollections.map((c) => (
+                              <span key={c.id} className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                                {c.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">None</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{seller._count?.products ?? 0}</td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => openEditModal(seller)}
-                          className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition"
-                        >
-                          Edit Commission
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => openEditModal(seller)}
+                            className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition"
+                          >
+                            Edit Commission
+                          </button>
+                          <button
+                            onClick={() => openCollectionsModal(seller)}
+                            className="px-3 py-1.5 text-sm font-medium text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition"
+                          >
+                            Manage Collections
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -184,6 +269,68 @@ export default function PlatformSellersPage() {
                   {saving ? 'Saving...' : 'Save'}
                 </button>
                 <button onClick={() => setEditingSeller(null)} className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Collections Modal */}
+      {collectionsModalSeller && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full shadow-xl">
+            <div className="border-b p-4 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-900">Manage Collections</h2>
+              <button onClick={() => setCollectionsModalSeller(null)} className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                Seller: <span className="font-medium text-gray-900">{collectionsModalSeller.name}</span>
+              </p>
+              {collectionsLoading ? (
+                <div className="text-center py-4">
+                  <LoadingSpinner />
+                </div>
+              ) : allCollections.length === 0 ? (
+                <p className="text-sm text-gray-500 py-4">No collections available. Create collections first.</p>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {allCollections.map((collection) => {
+                    const assignedToOther = collection.seller && collection.seller.id !== collectionsModalSeller.id;
+                    return (
+                      <label
+                        key={collection.id}
+                        className={`flex items-center gap-3 p-2 rounded ${assignedToOther ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedCollectionIds.has(collection.id)}
+                          onChange={() => toggleCollection(collection.id)}
+                          disabled={!!assignedToOther}
+                          className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-900">{collection.name}</span>
+                          {assignedToOther && (
+                            <span className="text-xs text-gray-400 ml-2">(Assigned to: {collection.seller!.name})</span>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSaveCollections}
+                  disabled={savingCollections || collectionsLoading}
+                  className="flex-1 bg-purple-600 text-white py-2 rounded hover:bg-purple-700 disabled:bg-gray-400"
+                >
+                  {savingCollections ? 'Saving...' : 'Save'}
+                </button>
+                <button onClick={() => setCollectionsModalSeller(null)} className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

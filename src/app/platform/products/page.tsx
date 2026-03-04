@@ -61,13 +61,13 @@ export default function PlatformProductsPage() {
   // Add product modal
   const [showModal, setShowModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
-  const [formData, setFormData] = useState({ sku: '', name: '', description: '', price: '', stock: '', categoryId: '', sellerId: '', collectionId: '' });
+  const [formData, setFormData] = useState({ sku: '', name: '', description: '', price: '', stock: '', categoryId: '', collectionId: '' });
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   // CSV import
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [csvSellerId, setCsvSellerId] = useState('');
+  const [csvCollectionId, setCsvCollectionId] = useState('');
   const [csvLoading, setCsvLoading] = useState(false);
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function PlatformProductsPage() {
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.sellerId) { toast.error('Please select a seller', toastConfig); return; }
+    if (!formData.collectionId) { toast.error('Please select a collection', toastConfig); return; }
     setFormLoading(true);
     try {
       const payload = new FormData();
@@ -144,8 +144,7 @@ export default function PlatformProductsPage() {
       payload.append('price', formData.price);
       payload.append('stock', formData.stock);
       payload.append('categoryId', formData.categoryId);
-      payload.append('sellerId', formData.sellerId);
-      if (formData.collectionId) payload.append('collectionId', formData.collectionId);
+      payload.append('collectionId', formData.collectionId);
       if (imageFile) payload.append('image', imageFile);
 
       await axios.post(`${API_URL}/products`, payload, {
@@ -153,7 +152,7 @@ export default function PlatformProductsPage() {
       });
       toast.success('Product created!', toastConfig);
       setShowModal(false);
-      setFormData({ sku: '', name: '', description: '', price: '', stock: '', categoryId: '', sellerId: '', collectionId: '' });
+      setFormData({ sku: '', name: '', description: '', price: '', stock: '', categoryId: '', collectionId: '' });
       setImageFile(null);
       fetchProducts(selectedSeller || undefined, selectedCollection || undefined);
     } catch (error: any) {
@@ -162,15 +161,15 @@ export default function PlatformProductsPage() {
   };
 
   const handleCsvImport = async () => {
-    if (!csvFile || !csvSellerId) {
-      toast.error('Select a CSV file and seller', toastConfig);
+    if (!csvFile || !csvCollectionId) {
+      toast.error('Select a CSV file and collection', toastConfig);
       return;
     }
     setCsvLoading(true);
     try {
       const payload = new FormData();
       payload.append('file', csvFile);
-      payload.append('sellerId', csvSellerId);
+      payload.append('collectionId', csvCollectionId);
       const res = await axios.post(`${API_URL}/products/csv-import`, payload, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
       });
@@ -181,7 +180,7 @@ export default function PlatformProductsPage() {
       }
       setShowCsvModal(false);
       setCsvFile(null);
-      setCsvSellerId('');
+      setCsvCollectionId('');
       fetchProducts(selectedSeller || undefined, selectedCollection || undefined);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'CSV import failed', toastConfig);
@@ -207,6 +206,27 @@ export default function PlatformProductsPage() {
             <p className="text-gray-600 mt-1">Manage products for Full-Service sellers</p>
           </div>
           <div className="flex gap-3">
+            <a
+              href={`${API_URL}/products/platform/export-csv?${selectedSeller ? `sellerId=${selectedSeller}&` : ''}${selectedCollection ? `collectionId=${selectedCollection}` : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                axios.get(`${API_URL}/products/platform/export-csv`, {
+                  params: { sellerId: selectedSeller || undefined, collectionId: selectedCollection || undefined },
+                  headers: { Authorization: `Bearer ${token}` },
+                  responseType: 'blob',
+                }).then((res) => {
+                  const url = window.URL.createObjectURL(new Blob([res.data]));
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'products_export.csv';
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                }).catch(() => toast.error('Failed to export CSV', toastConfig));
+              }}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 transition cursor-pointer"
+            >
+              Export CSV
+            </a>
             <button onClick={() => setShowCsvModal(true)} className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition">
               CSV Import
             </button>
@@ -306,12 +326,21 @@ export default function PlatformProductsPage() {
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
             </div>
             <form onSubmit={handleCreateProduct} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Seller *</label>
-                <select value={formData.sellerId} onChange={(e) => setFormData({ ...formData, sellerId: e.target.value })} required className="w-full p-2 border rounded">
-                  <option value="">Select a Full-Service seller</option>
-                  {sellers.map((s) => <option key={s.id} value={s.id}>{s.name} - {s.email}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Collection *</label>
+                  <select value={formData.collectionId} onChange={(e) => setFormData({ ...formData, collectionId: e.target.value })} required className="w-full p-2 border rounded">
+                    <option value="">Select a collection</option>
+                    {collections.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Category *</label>
+                  <select value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} required className="w-full p-2 border rounded">
+                    <option value="">Select</option>
+                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">SKU *</label>
@@ -324,22 +353,6 @@ export default function PlatformProductsPage() {
               <div>
                 <label className="block text-sm font-medium mb-1">Description</label>
                 <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} className="w-full p-2 border rounded" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Category *</label>
-                  <select value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} required className="w-full p-2 border rounded">
-                    <option value="">Select</option>
-                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Collection</label>
-                  <select value={formData.collectionId} onChange={(e) => setFormData({ ...formData, collectionId: e.target.value })} className="w-full p-2 border rounded">
-                    <option value="">None</option>
-                    {collections.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -376,19 +389,38 @@ export default function PlatformProductsPage() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Seller *</label>
-                <select value={csvSellerId} onChange={(e) => setCsvSellerId(e.target.value)} className="w-full p-2 border rounded">
-                  <option value="">Select seller</option>
-                  {sellers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                <label className="block text-sm font-medium mb-1">Collection *</label>
+                <select value={csvCollectionId} onChange={(e) => setCsvCollectionId(e.target.value)} className="w-full p-2 border rounded">
+                  <option value="">Select collection</option>
+                  {collections.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">CSV File *</label>
                 <input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} className="w-full p-2 border rounded" />
-                <p className="text-xs text-gray-500 mt-1">Columns: sku, name, description, price, stock, categoryId, images (URLs separated by ;)</p>
+                <p className="text-xs text-gray-500 mt-1">Columns: sku, name, description, price, stock, category, images (URLs separated by ;)</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    axios.get(`${API_URL}/products/platform/csv-sample`, {
+                      headers: { Authorization: `Bearer ${token}` },
+                      responseType: 'blob',
+                    }).then((res) => {
+                      const url = window.URL.createObjectURL(new Blob([res.data]));
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'product_import_sample.csv';
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                    }).catch(() => toast.error('Failed to download sample', toastConfig));
+                  }}
+                  className="text-xs text-purple-600 hover:text-purple-800 font-medium mt-1"
+                >
+                  Download Sample CSV
+                </button>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={handleCsvImport} disabled={csvLoading || !csvFile || !csvSellerId} className="flex-1 bg-purple-600 text-white py-2 rounded hover:bg-purple-700 disabled:bg-gray-400">
+                <button onClick={handleCsvImport} disabled={csvLoading || !csvFile || !csvCollectionId} className="flex-1 bg-purple-600 text-white py-2 rounded hover:bg-purple-700 disabled:bg-gray-400">
                   {csvLoading ? 'Importing...' : 'Import'}
                 </button>
                 <button onClick={() => setShowCsvModal(false)} className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
