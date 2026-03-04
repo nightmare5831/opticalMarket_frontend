@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -295,8 +295,7 @@ function SellerProfilePage() {
   if (loading || !user || user.role !== 'SELLER') return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
@@ -728,7 +727,7 @@ function SellerProfilePage() {
           </div>
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }
 

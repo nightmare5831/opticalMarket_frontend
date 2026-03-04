@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -198,9 +198,7 @@ export default function PlatformProductsPage() {
   if (loading || !user || user.role !== 'PLATFORM_USER') return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
@@ -219,27 +217,33 @@ export default function PlatformProductsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap gap-3">
-          <select
-            value={selectedSeller}
-            onChange={(e) => handleSellerFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
-          >
-            <option value="">All Full-Service Sellers</option>
-            {sellers.map((s) => (
-              <option key={s.id} value={s.id}>{s.name} ({s.commissionRate ? `${Number(s.commissionRate)}%` : 'No commission'})</option>
-            ))}
-          </select>
-          <select
-            value={selectedCollection}
-            onChange={(e) => handleCollectionFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
-          >
-            <option value="">All Collections</option>
-            {collections.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">Seller</label>
+            <select
+              value={selectedSeller}
+              onChange={(e) => handleSellerFilter(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
+            >
+              <option value="">All Full-Service Sellers</option>
+              {sellers.map((s) => (
+                <option key={s.id} value={s.id}>{s.name} ({s.commissionRate ? `${Number(s.commissionRate)}%` : 'No commission'})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">Collection</label>
+            <select
+              value={selectedCollection}
+              onChange={(e) => handleCollectionFilter(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
+            >
+              <option value="">All Collections</option>
+              {collections.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Products Grid */}
@@ -393,6 +397,6 @@ export default function PlatformProductsPage() {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }

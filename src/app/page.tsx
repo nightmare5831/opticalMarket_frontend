@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cartStore';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 
@@ -110,9 +110,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       {/* Main Content */}
       <main className="mx-8 px-6 py-8">
         {/* Welcome Section */}
@@ -313,6 +311,6 @@ export default function Home() {
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

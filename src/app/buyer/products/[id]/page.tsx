@@ -7,7 +7,8 @@ import { toast } from 'react-toastify';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/auth';
 import { toastConfig } from '@/lib/toast';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
+import PublicLayout from '@/components/PublicLayout';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -103,9 +104,10 @@ export default function ProductDetailPage() {
     ? product.stock - (cartItem?.quantity || 0)
     : 0;
 
+  const Layout = user ? AppLayout : PublicLayout;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <Layout>
       <div className="max-w-6xl mx-auto p-8">
         <button
           onClick={() => router.push('/buyer/products')}
@@ -232,6 +234,6 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

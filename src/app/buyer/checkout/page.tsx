@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cartStore';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import Request from '@/lib/api';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -234,8 +234,7 @@ export default function CheckoutAddressPage() {
   const total = getTotal();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <AppLayout>
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center gap-2 mb-6">
           <div className="flex items-center">
@@ -639,6 +638,6 @@ export default function CheckoutAddressPage() {
           </div>
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

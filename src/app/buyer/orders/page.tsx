@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 
@@ -143,14 +143,13 @@ function OrdersPage() {
 
   if (loading || loadingOrders) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <AppLayout>
         <main className="mx-8 px-6 py-8">
           <div className="text-center py-16">
             <LoadingSpinner message="Loading orders..." />
           </div>
         </main>
-      </div>
+      </AppLayout>
     );
   }
 
@@ -167,8 +166,7 @@ function OrdersPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         {/* Confirmation Banner */}
         {confirmedOrder && (
@@ -548,7 +546,7 @@ function OrdersPage() {
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }
 

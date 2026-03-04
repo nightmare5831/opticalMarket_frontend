@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
@@ -63,9 +63,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       {/* Main Content */}
       <main className="mx-8 px-6 py-8">
         <div className="mb-8">
@@ -129,6 +127,6 @@ export default function AdminPage() {
         </div>
       </main>
 
-    </div>
+    </AppLayout>
   );
 }

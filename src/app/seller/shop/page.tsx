@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cartStore';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import Request from '@/lib/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
@@ -120,9 +120,7 @@ export default function SellerShopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <div className="mx-8 px-6 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Shop B2B Products</h1>
@@ -450,6 +448,6 @@ export default function SellerShopPage() {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }

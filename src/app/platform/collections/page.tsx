@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -115,9 +115,7 @@ export default function PlatformCollectionsPage() {
   if (loading || !user || user.role !== 'PLATFORM_USER') return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <div>
@@ -222,6 +220,6 @@ export default function PlatformCollectionsPage() {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }

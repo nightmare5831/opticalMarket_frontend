@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 
@@ -155,20 +155,18 @@ export default function SellerOrdersPage() {
 
   if (loading || loadingOrders) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <AppLayout>
         <main className="mx-8 px-6 py-8">
           <div className="text-center py-16">
             <LoadingSpinner message="Loading orders..." />
           </div>
         </main>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         {/* Page Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -511,6 +509,6 @@ export default function SellerOrdersPage() {
           </div>
         )}
       </main>
-    </div>
+    </AppLayout>
   );
 }
