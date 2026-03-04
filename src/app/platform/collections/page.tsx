@@ -19,6 +19,7 @@ interface Collection {
   description?: string;
   createdAt: string;
   _count?: { products: number };
+  seller?: { id: string; name: string } | null;
 }
 
 export default function PlatformCollectionsPage() {
@@ -152,6 +153,13 @@ export default function PlatformCollectionsPage() {
                     {collection._count?.products ?? 0} product{(collection._count?.products ?? 0) !== 1 ? 's' : ''}
                   </span>
                 </div>
+                <p className="text-xs mb-2">
+                  {collection.seller ? (
+                    <span className="text-indigo-600 font-medium">Seller: {collection.seller.name}</span>
+                  ) : (
+                    <span className="text-gray-400">Unassigned</span>
+                  )}
+                </p>
                 {collection.description && (
                   <p className="text-sm text-gray-600 mb-3">{collection.description}</p>
                 )}

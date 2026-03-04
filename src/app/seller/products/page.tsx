@@ -241,6 +241,26 @@ export default function SellerProductsPage() {
             <p className="text-gray-600 mt-1">Manage your products</p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={() => {
+                const headers = new Headers();
+                if (token) headers.append('Authorization', `Bearer ${token}`);
+                fetch(`${API_URL}/products/seller/export-csv`, { headers })
+                  .then(res => res.blob())
+                  .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'products_export.csv';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  })
+                  .catch(() => toast.error('Failed to export CSV', toastConfig));
+              }}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 transition"
+            >
+              Export CSV
+            </button>
             <button onClick={() => setShowCsvModal(true)} className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition">
               CSV Import
             </button>
@@ -535,7 +555,7 @@ export default function SellerProductsPage() {
               <div>
                 <label className="block text-sm font-medium mb-1">CSV File *</label>
                 <input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} className="w-full p-2 border rounded" />
-                <p className="text-xs text-gray-500 mt-1">Columns: sku, name, description, price, stock, categoryId, images (URLs separated by ;)</p>
+                <p className="text-xs text-gray-500 mt-1">Columns: sku, name, description, price, stock, category, images (URLs separated by ;)</p>
                 <a
                   href={`${API_URL}/products/csv-sample`}
                   onClick={(e) => {
