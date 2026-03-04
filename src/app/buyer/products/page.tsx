@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -218,8 +219,7 @@ export default function ProductsPage() {
         {/* Products Grid */}
         {loading ? (
           <div className="text-center py-20">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600 font-medium">Loading products...</p>
+            <LoadingSpinner message="Loading products..." />
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-xl border-2 border-dashed border-gray-300">

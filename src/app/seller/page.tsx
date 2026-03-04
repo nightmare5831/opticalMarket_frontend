@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface DashboardData {
   orderCount: number;
@@ -66,8 +67,7 @@ export default function SellerDashboardPage() {
         <Header />
         <main className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-500">Loading dashboard...</p>
+            <LoadingSpinner message="Loading dashboard..." />
           </div>
         </main>
       </div>

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cartStore';
 import { getNavigationTabs, getHomePath } from '@/lib/navigation';
 import BlingConnectionModal from '@/components/BlingConnectionModal';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function Header() {
   const router = useRouter();
@@ -162,10 +163,7 @@ export default function Header() {
       {/* Loading Spinner Overlay - Rendered independently */}
       {(isNavigating || loggingOut) && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-            {loggingOut && <p className="mt-3 text-white font-medium">Logging out...</p>}
-          </div>
+          <LoadingSpinner color="white" message={loggingOut ? 'Logging out...' : undefined} />
         </div>
       )}
     </>

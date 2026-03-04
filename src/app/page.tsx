@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cartStore';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 
 interface OrderItem {
@@ -103,7 +104,7 @@ export default function Home() {
   if (loading || !user || user.role !== 'CUSTOMER') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -248,8 +249,7 @@ export default function Home() {
 
           {loadingData ? (
             <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-3 text-gray-500 text-sm">Loading orders...</p>
+              <LoadingSpinner message="Loading orders..." />
             </div>
           ) : recentOrders.length === 0 ? (
             <div className="p-12 text-center">

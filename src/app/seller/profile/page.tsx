@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
@@ -430,7 +431,7 @@ function SellerProfilePage() {
 
               {addressLoading ? (
                 <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
+                  <LoadingSpinner size="sm" color="gray" />
                   <span>Loading address...</span>
                 </div>
               ) : isEditingAddress ? (
@@ -666,7 +667,7 @@ function SellerProfilePage() {
 
                   {blingLoading ? (
                     <div className="flex items-center gap-2 text-sm text-gray-500 px-3 py-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
+                      <LoadingSpinner size="sm" color="gray" />
                       <span>Checking connection...</span>
                     </div>
                   ) : blingStatus?.configured ? (
@@ -684,7 +685,7 @@ function SellerProfilePage() {
                         className="w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         {blingSyncing && (
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          <LoadingSpinner size="sm" color="white" />
                         )}
                         {blingSyncing ? 'Syncing...' : 'Sync Products & Categories'}
                       </button>

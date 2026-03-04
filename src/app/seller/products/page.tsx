@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -222,8 +223,7 @@ export default function SellerProductsPage() {
         <Header />
         <main className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-500">Loading...</p>
+            <LoadingSpinner message="Loading..." />
           </div>
         </main>
       </div>
@@ -281,8 +281,7 @@ export default function SellerProductsPage() {
         {/* Products */}
         {loadingProducts ? (
           <div className="text-center py-20">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600 font-medium">Loading products...</p>
+            <LoadingSpinner message="Loading products..." />
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-300">

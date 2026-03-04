@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 import { getHomePath } from '@/lib/navigation';
 
@@ -104,7 +105,7 @@ function LoginForm() {
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <LoadingSpinner size="sm" color="white" />
                   Signing in...
                 </span>
               ) : 'Sign in'}

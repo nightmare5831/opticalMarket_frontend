@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 
 interface OrderItem {
@@ -158,8 +159,7 @@ export default function SellerOrdersPage() {
         <Header />
         <main className="mx-8 px-6 py-8">
           <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-500">Loading orders...</p>
+            <LoadingSpinner message="Loading orders..." />
           </div>
         </main>
       </div>
