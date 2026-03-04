@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 
 export default function SellerCartPage() {
   const router = useRouter();
@@ -36,8 +36,7 @@ export default function SellerCartPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <AppLayout>
       <main className="mx-8 px-6 py-8 pb-32">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Shopping Cart</h1>
 
@@ -204,6 +203,6 @@ export default function SellerCartPage() {
           </div>
         )}
       </main>
-    </div>
+    </AppLayout>
   );
 }

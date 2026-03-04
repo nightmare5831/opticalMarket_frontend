@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
@@ -155,9 +155,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
@@ -240,35 +238,34 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Search Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Search & Filter</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Email</label>
               <input
                 type="email"
                 placeholder="Search by email..."
                 value={searchEmail}
                 onChange={(e) => setSearchEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Name</label>
               <input
                 type="text"
                 placeholder="Search by name..."
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Role</label>
               <select
                 value={filterRole}
                 onChange={(e) => { setFilterRole(e.target.value); setCurrentPage(1); }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
               >
                 <option value="">All Roles</option>
                 <option value="CUSTOMER">Customer</option>
@@ -277,11 +274,11 @@ export default function AdminUsersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Status</label>
               <select
                 value={filterStatus}
                 onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
               >
                 <option value="">All Status</option>
                 <option value="ACTIVE">Active</option>
@@ -290,11 +287,11 @@ export default function AdminUsersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Seller Type</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Seller Type</label>
               <select
                 value={filterSellerType}
                 onChange={(e) => { setFilterSellerType(e.target.value); setCurrentPage(1); }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
               >
                 <option value="">All Types</option>
                 <option value="B2C_MERCHANT">B2C Merchant</option>
@@ -305,7 +302,7 @@ export default function AdminUsersPage() {
             <div className="flex items-end">
               <button
                 onClick={handleSearch}
-                className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Search
               </button>
@@ -454,6 +451,6 @@ export default function AdminUsersPage() {
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

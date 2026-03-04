@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -111,9 +111,7 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <div className="mx-8 px-6 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="mb-4 sm:mb-0">
@@ -275,6 +273,6 @@ export default function CategoriesPage() {
           </div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 
@@ -122,20 +122,18 @@ function SellerPurchasesPage() {
 
   if (loadingOrders) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <AppLayout>
         <main className="mx-8 px-6 py-8">
           <div className="text-center py-16">
             <LoadingSpinner message="Loading purchases..." />
           </div>
         </main>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         {showConfirmation && orders.length > 0 && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center gap-3">
@@ -329,7 +327,7 @@ function SellerPurchasesPage() {
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }
 

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cartStore';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
+import PublicLayout from '@/components/PublicLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Request from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -19,10 +20,17 @@ interface Product {
   stock: number;
   images: string[];
   category: { id: string; name: string };
+  collection?: { id: string; name: string; slug: string } | null;
   seller?: { id: string; name: string; sellerType?: string; legalCompanyName?: string };
 }
 
 interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Collection {
   id: string;
   name: string;
   slug: string;
@@ -34,6 +42,7 @@ export default function ProductsPage() {
   const { addItem } = useCartStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
@@ -43,6 +52,7 @@ export default function ProductsPage() {
   const [searchName, setSearchName] = useState('');
   const [searchSku, setSearchSku] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCollection, setSelectedCollection] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
@@ -57,22 +67,32 @@ export default function ProductsPage() {
   useEffect(() => {
     if (!mounted) return;
     fetchCategories();
+    fetchCollections();
     fetchAllProducts();
   }, [mounted]);
 
   const fetchCategories = async () => {
     try {
-      const data = await Request.Get('/categories?productType=B2C');
+      const data = await Request.Get('/categories?productType=B2C&scope=shop');
       setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
   };
 
+  const fetchCollections = async () => {
+    try {
+      const data = await Request.Get('/collections/public');
+      setCollections(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching collections:', error);
+    }
+  };
+
   const fetchAllProducts = async () => {
     setLoading(true);
     try {
-      const data = await Request.Get('/products?productType=B2C');
+      const data = await Request.Get('/products?productType=B2C&limit=500');
       const products = Array.isArray(data) ? data : data?.data || [];
       setAllProducts(products);
     } catch (error) {
@@ -89,6 +109,7 @@ export default function ProductsPage() {
     if (searchName && !product.name?.toLowerCase().includes(searchName.toLowerCase())) return false;
     if (searchSku && !product.sku?.toLowerCase().includes(searchSku.toLowerCase())) return false;
     if (selectedCategory && product.category?.id !== selectedCategory) return false;
+    if (selectedCollection && product.collection?.id !== selectedCollection) return false;
     if (minPrice && product.price < parseFloat(minPrice)) return false;
     if (maxPrice && product.price > parseFloat(maxPrice)) return false;
     return true;
@@ -102,7 +123,7 @@ export default function ProductsPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchName, searchSku, selectedCategory, minPrice, maxPrice]);
+  }, [searchName, searchSku, selectedCategory, selectedCollection, minPrice, maxPrice]);
 
   const handleAddToCart = (product: Product) => {
     if (!user) {
@@ -128,60 +149,61 @@ export default function ProductsPage() {
     toast.success(`${product.name} added to cart!`, toastConfig);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+  const hasActiveFilters = searchName || searchSku || selectedCategory || selectedCollection || minPrice || maxPrice;
 
-      <div className="mx-8 px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-          <p className="text-gray-600 mt-1">Browse all available products</p>
+  const Layout = user ? AppLayout : PublicLayout;
+
+  return (
+    <Layout>
+      <div className="px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {user ? 'Products' : 'Optical Market'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {user ? 'Browse all available products' : 'Discover quality optical products'}
+          </p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-gray-900">Filter Products</h2>
-            <button
-              onClick={() => {
-                setSearchName('');
-                setSearchSku('');
-                setSelectedCategory('');
-                setMinPrice('');
-                setMaxPrice('');
-              }}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Clear All
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Search */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">Search by Name</label>
-              <input
-                type="text"
-                value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
-                placeholder="Product name..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Search by Name</label>
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  placeholder="Product name..."
+                  className="w-full pl-10 pr-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
+                />
+              </div>
             </div>
+
+            {/* SKU */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">Search by SKU</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Search by SKU</label>
               <input
                 type="text"
                 value={searchSku}
                 onChange={(e) => setSearchSku(e.target.value)}
                 placeholder="SKU..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
               />
             </div>
+
+            {/* Category */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">Category</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Category</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -189,29 +211,87 @@ export default function ProductsPage() {
                 ))}
               </select>
             </div>
+
+            {/* Collection */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">Price Range</label>
-              <div className="flex gap-2">
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Collection</label>
+              <select
+                value={selectedCollection}
+                onChange={(e) => setSelectedCollection(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
+              >
+                <option value="">All Collections</option>
+                {collections.map((col) => (
+                  <option key={col.id} value={col.id}>{col.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Price Range</label>
+              <div className="flex items-center gap-1.5">
                 <input
                   type="number"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                   placeholder="Min"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
                 />
+                <span className="text-gray-400 text-sm shrink-0">-</span>
                 <input
                   type="number"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                   placeholder="Max"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
                 />
               </div>
             </div>
+
+            {/* Clear */}
+            <div className="flex items-end justify-end">
+              <button
+                onClick={() => {
+                  setSearchName('');
+                  setSearchSku('');
+                  setSelectedCategory('');
+                  setSelectedCollection('');
+                  setMinPrice('');
+                  setMaxPrice('');
+                }}
+                disabled={!hasActiveFilters}
+                className="px-3 py-1.5 text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Clear All
+              </button>
+            </div>
           </div>
+
+          {/* Result count + active filter pills */}
           {mounted && (
-            <div className="mt-4 text-sm text-gray-600">
-              Showing <span className="font-semibold text-gray-900">{filteredProducts.length}</span> of <span className="font-semibold text-gray-900">{allProducts.length}</span> products
+            <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+              <span className="text-sm text-gray-500">
+                {filteredProducts.length} of {allProducts.length} products
+              </span>
+              {selectedCategory && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
+                  {categories.find(c => c.id === selectedCategory)?.name}
+                  <button onClick={() => setSelectedCategory('')} className="hover:text-blue-900">&times;</button>
+                </span>
+              )}
+              {selectedCollection && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-full">
+                  {collections.find(c => c.id === selectedCollection)?.name}
+                  <button onClick={() => setSelectedCollection('')} className="hover:text-purple-900">&times;</button>
+                </span>
+              )}
+              {(minPrice || maxPrice) && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full">
+                  {minPrice ? `R$${minPrice}` : '0'} - {maxPrice ? `R$${maxPrice}` : '...'}
+                  <button onClick={() => { setMinPrice(''); setMaxPrice(''); }} className="hover:text-green-900">&times;</button>
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -466,6 +546,6 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
@@ -161,9 +161,7 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         <div className="mb-8 flex justify-between items-center">
           <div>
@@ -279,15 +277,14 @@ export default function AdminOrdersPage() {
         </div>
 
         {/* Search & Filter */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Search & Filter</h2>
+        <div className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Status</label>
               <select
                 value={filterStatus}
                 onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
               >
                 <option value="">All Status</option>
                 <option value="PENDING">Pending</option>
@@ -298,11 +295,11 @@ export default function AdminOrdersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Payment Method</label>
               <select
                 value={filterPaymentMethod}
                 onChange={(e) => setFilterPaymentMethod(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none appearance-none cursor-pointer"
               >
                 <option value="">All Methods</option>
                 <option value="CREDIT_CARD">Credit Card</option>
@@ -312,55 +309,55 @@ export default function AdminOrdersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Date Range</label>
               <div className="flex gap-2">
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   placeholder="From"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
                 />
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   placeholder="To"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
                 />
               </div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Total Price Range</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Total Price Range</label>
               <div className="flex gap-2">
                 <input
                   type="number"
                   value={minTotal}
                   onChange={(e) => setMinTotal(e.target.value)}
                   placeholder="Min (R$)"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
                 />
                 <input
                   type="number"
                   value={maxTotal}
                   onChange={(e) => setMaxTotal(e.target.value)}
                   placeholder="Max (R$)"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 rounded-none border-b border-gray-300 focus:border-blue-500 text-sm bg-transparent hover:bg-gray-50 transition outline-none"
                 />
               </div>
             </div>
             <div className="flex items-end gap-2">
               <button
                 onClick={handleSearch}
-                className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Search
               </button>
               <button
                 onClick={handleClearFilters}
-                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition"
               >
                 Clear
               </button>
@@ -547,6 +544,6 @@ export default function AdminOrdersPage() {
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -85,9 +85,7 @@ export default function PlatformSellersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Full-Service Sellers</h1>
@@ -191,6 +189,6 @@ export default function PlatformSellersPage() {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }

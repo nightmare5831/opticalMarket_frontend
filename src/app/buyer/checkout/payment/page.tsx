@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cartStore';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import Request from '@/lib/api';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
@@ -219,8 +219,7 @@ export default function CheckoutPaymentPage() {
   // Show payment result (PIX QR codes or card status)
   if (paymentResult) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <AppLayout>
         <main className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -299,13 +298,12 @@ export default function CheckoutPaymentPage() {
             </div>
           </div>
         </main>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <AppLayout>
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Progress steps */}
         <div className="flex items-center gap-2 mb-6">
@@ -503,6 +501,6 @@ export default function CheckoutPaymentPage() {
           </div>
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

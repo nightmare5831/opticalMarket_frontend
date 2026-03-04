@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Request from '@/lib/api';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface DashboardData {
@@ -63,14 +63,13 @@ export default function SellerDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <AppLayout>
         <main className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center py-16">
             <LoadingSpinner message="Loading dashboard..." />
           </div>
         </main>
-      </div>
+      </AppLayout>
     );
   }
 
@@ -79,9 +78,7 @@ export default function SellerDashboardPage() {
   const isPending = user.status === 'PENDING';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -284,6 +281,6 @@ export default function SellerDashboardPage() {
           </div>
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

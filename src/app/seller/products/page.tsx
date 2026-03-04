@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthStore } from '@/stores/auth';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -219,23 +219,20 @@ export default function SellerProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <AppLayout>
         <main className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center py-16">
             <LoadingSpinner message="Loading..." />
           </div>
         </main>
-      </div>
+      </AppLayout>
     );
   }
 
   if (!user || user.role !== 'SELLER') return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
+    <AppLayout>
       <main className="mx-8 px-6 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
@@ -265,7 +262,7 @@ export default function SellerProductsPage() {
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition ${
                 statusFilter === status
                   ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  : 'text-gray-600 border-b border-gray-300 hover:bg-gray-50'
               }`}
             >
               {status === 'ALL' ? 'All' : status === 'CANCELLED' ? 'Rejected' : status.charAt(0) + status.slice(1).toLowerCase()}
@@ -573,6 +570,6 @@ export default function SellerProductsPage() {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }
