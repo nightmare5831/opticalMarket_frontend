@@ -8,6 +8,18 @@ import Header from '@/components/Header';
 import { toast } from 'react-toastify';
 import { toastConfig } from '@/lib/toast';
 
+interface Address {
+  id: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  isDefault: boolean;
+}
+
 function SellerProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,6 +36,16 @@ function SellerProfilePage() {
   const [blingSyncing, setBlingSyncing] = useState(false);
   const [blingSyncResult, setBlingSyncResult] = useState<{ success: boolean; message: string } | null>(null);
 
+  // Address state
+  const [address, setAddress] = useState<Address | null>(null);
+  const [addressLoading, setAddressLoading] = useState(true);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [addressSaving, setAddressSaving] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zipCode: '',
+  });
+
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -36,6 +58,7 @@ function SellerProfilePage() {
       setPhone(user.phone || '');
       setLegalCompanyName(user.legalCompanyName || '');
       fetchBlingStatus();
+      fetchAddress();
     }
   }, [user, loading, router]);
 
@@ -199,6 +222,75 @@ function SellerProfilePage() {
     }
   };
 
+  const fetchAddress = async () => {
+    setAddressLoading(true);
+    try {
+      const data = await Request.Get('/address');
+      const addresses: Address[] = Array.isArray(data) ? data : [];
+      const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0] || null;
+      setAddress(defaultAddr);
+      if (defaultAddr) {
+        setAddressForm({
+          street: defaultAddr.street,
+          number: defaultAddr.number,
+          complement: defaultAddr.complement || '',
+          neighborhood: defaultAddr.neighborhood,
+          city: defaultAddr.city,
+          state: defaultAddr.state,
+          zipCode: defaultAddr.zipCode,
+        });
+      }
+    } catch {
+      setAddress(null);
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
+  const handleCepChange = async (value: string) => {
+    const clean = value.replace(/\D/g, '');
+    setAddressForm((prev) => ({ ...prev, zipCode: clean }));
+    if (clean.length === 8) {
+      setCepLoading(true);
+      try {
+        const data = await Request.Get(`/address/cep/${clean}`);
+        if (data) {
+          setAddressForm((prev) => ({
+            ...prev,
+            street: data.street || prev.street,
+            neighborhood: data.neighborhood || prev.neighborhood,
+            city: data.city || prev.city,
+            state: data.state || prev.state,
+          }));
+        }
+      } catch { /* ignore */ }
+      setCepLoading(false);
+    }
+  };
+
+  const handleSaveAddress = async () => {
+    if (!addressForm.street || !addressForm.number || !addressForm.neighborhood || !addressForm.city || !addressForm.state || !addressForm.zipCode) {
+      toast.error('Please fill in all required address fields', toastConfig);
+      return;
+    }
+    setAddressSaving(true);
+    try {
+      if (address) {
+        const updated = await Request.Put(`/address/${address.id}`, { ...addressForm, isDefault: true });
+        setAddress(updated);
+      } else {
+        const created = await Request.Post('/address', { ...addressForm, isDefault: true });
+        setAddress(created);
+      }
+      toast.success('Address updated successfully', toastConfig);
+      setIsEditingAddress(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update address', toastConfig);
+    } finally {
+      setAddressSaving(false);
+    }
+  };
+
   if (loading || !user || user.role !== 'SELLER') return null;
 
   return (
@@ -305,6 +397,183 @@ function SellerProfilePage() {
                     className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     Cancel
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Business Address */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Business Address</h2>
+                {!isEditingAddress && (
+                  <button
+                    onClick={() => {
+                      if (address) {
+                        setAddressForm({
+                          street: address.street,
+                          number: address.number,
+                          complement: address.complement || '',
+                          neighborhood: address.neighborhood,
+                          city: address.city,
+                          state: address.state,
+                          zipCode: address.zipCode,
+                        });
+                      }
+                      setIsEditingAddress(true);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-lg hover:bg-blue-50"
+                  >
+                    {address ? 'Edit' : 'Add Address'}
+                  </button>
+                )}
+              </div>
+
+              {addressLoading ? (
+                <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
+                  <span>Loading address...</span>
+                </div>
+              ) : isEditingAddress ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      CEP {cepLoading && <span className="text-blue-500 text-xs ml-1">Looking up...</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.zipCode}
+                      onChange={(e) => handleCepChange(e.target.value)}
+                      maxLength={8}
+                      placeholder="00000000"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Street</label>
+                      <input
+                        type="text"
+                        value={addressForm.street}
+                        onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Number</label>
+                      <input
+                        type="text"
+                        value={addressForm.number}
+                        onChange={(e) => setAddressForm({ ...addressForm, number: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Complement</label>
+                    <input
+                      type="text"
+                      value={addressForm.complement}
+                      onChange={(e) => setAddressForm({ ...addressForm, complement: e.target.value })}
+                      placeholder="Apt, suite, etc. (optional)"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Neighborhood</label>
+                    <input
+                      type="text"
+                      value={addressForm.neighborhood}
+                      onChange={(e) => setAddressForm({ ...addressForm, neighborhood: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={addressForm.city}
+                        onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                      <input
+                        type="text"
+                        value={addressForm.state}
+                        onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                        maxLength={2}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-2">
+                    <button onClick={handleSaveAddress} disabled={addressSaving} className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                      {addressSaving ? 'Saving...' : 'Save Address'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingAddress(false);
+                        if (address) {
+                          setAddressForm({
+                            street: address.street, number: address.number, complement: address.complement || '',
+                            neighborhood: address.neighborhood, city: address.city, state: address.state, zipCode: address.zipCode,
+                          });
+                        }
+                      }}
+                      disabled={addressSaving}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : address ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Street</label>
+                      <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm">
+                        {address.street}, {address.number}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Complement</label>
+                      <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm">
+                        {address.complement || '-'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Neighborhood</label>
+                      <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm">{address.neighborhood}</div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">CEP</label>
+                      <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm">{address.zipCode}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
+                      <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm">{address.city}</div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">State</label>
+                      <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm">{address.state}</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <p className="text-gray-500 text-sm">No business address added yet</p>
+                  <p className="text-gray-400 text-xs mt-1">Click "Add Address" to set your business address</p>
                 </div>
               )}
             </div>

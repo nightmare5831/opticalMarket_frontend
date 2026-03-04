@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,8 +9,9 @@ import { useAuthStore } from '@/stores/auth';
 import Request from '@/lib/api';
 import { getHomePath } from '@/lib/navigation';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth } = useAuth();
   const setAuthStore = useAuthStore((state) => state.setAuth);
   const [email, setEmail] = useState('');
@@ -29,8 +30,9 @@ export default function LoginPage() {
       setAuth(data.user, data.token);
       setAuthStore(data.user, data.token);
 
-      // Redirect based on role
-      router.push(getHomePath(data.user.role));
+      // Redirect to previous page or home based on role
+      const redirect = searchParams.get('redirect');
+      router.push(redirect || getHomePath(data.user.role));
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       setLoading(false);
@@ -118,5 +120,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -45,7 +45,7 @@ export default function Home() {
     if (loading) return;
 
     if (!user) {
-      router.push('/auth/login');
+      router.push('/buyer/products');
     } else if (user.role === 'ADMIN') {
       router.push('/admin');
     } else if (user.role === 'SELLER') {

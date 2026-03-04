@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useCartStore } from '@/stores/cartStore';
+import { useAuthStore } from '@/stores/auth';
 import { toastConfig } from '@/lib/toast';
 import Header from '@/components/Header';
 
@@ -26,6 +27,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addItem, items } = useCartStore();
+  const { user } = useAuthStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -76,6 +78,12 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!product) return;
+
+    if (!user) {
+      toast.info('Please login to add items to cart', toastConfig);
+      router.push(`/auth/login?redirect=/buyer/products/${params.id}`);
+      return;
+    }
 
     addItem({
       productId: product.id,
