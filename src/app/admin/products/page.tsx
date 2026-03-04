@@ -97,7 +97,18 @@ export default function AdminProductsPage() {
       setSelectedIds(new Set());
       fetchProducts();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to delete products', toastConfig);
+      const data = error?.response?.data;
+      if (data?.blocked?.length) {
+        const deletedMsg = data.deleted > 0 ? `${data.deleted} product(s) deleted. ` : '';
+        toast.warning(
+          `${deletedMsg}${data.blocked.length} product(s) have orders and cannot be deleted: ${data.blocked.join(', ')}`,
+          { ...toastConfig, autoClose: 8000 }
+        );
+        setSelectedIds(new Set());
+        fetchProducts();
+      } else {
+        toast.error(data?.message || 'Failed to delete products', toastConfig);
+      }
     } finally {
       setDeleting(false);
     }
